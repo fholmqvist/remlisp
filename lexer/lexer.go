@@ -264,8 +264,6 @@ func isOperator(b byte) bool {
 
 func isComplexOperator(a, b byte) bool {
 	switch {
-	case a == '=' && b == '=':
-		return true
 	case a == '!' && b == '=':
 		return true
 	case a == '<' && b == '=':
@@ -276,18 +274,6 @@ func isComplexOperator(a, b byte) bool {
 		return true
 	case a == '-' && b == '-':
 		return true
-
-	case a == '+' && b == '=':
-		return true
-	case a == '-' && b == '=':
-		return true
-	case a == '*' && b == '=':
-		return true
-	case a == '/' && b == '=':
-		return true
-	case a == '%' && b == '=':
-		return true
-
 	default:
 		return false
 	}
