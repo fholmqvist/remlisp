@@ -7,6 +7,16 @@ type Position struct {
 	End   int
 }
 
+func NewPos(start, end int) Position {
+	if start == end {
+		end++
+	}
+	return Position{
+		Start: start,
+		End:   end,
+	}
+}
+
 func (p Position) String() string {
 	// TODO: Take input and calculate row/col.
 	return fmt.Sprintf("[byte index %d-%d]", p.Start+1, p.End+1)

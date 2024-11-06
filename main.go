@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	fmt.Println()
 	bb, err := os.ReadFile("input.rem")
 	if err != nil {
 		panic(err)
@@ -38,7 +39,7 @@ func main() {
 }
 
 func prettyPrintTokens(tokens []tk.Token) {
-	fmt.Printf("\n%s\n", h.Bold("TOKENS ============="))
+	fmt.Printf("%s\n", h.Bold("TOKENS ============="))
 	if len(tokens) > 0 {
 		for i, t := range tokens {
 			num := fmt.Sprintf("%.4d", i)
@@ -76,6 +77,6 @@ func exit(context string, err error) {
 }
 
 func exite(context string, input []byte, err *e.Error) {
-	fmt.Printf("%s:\n\n%s\n\n", h.Bold(context), err.String(input))
+	fmt.Printf("%s:\n%s\n\n", h.Bold(context), err.String(input))
 	os.Exit(1)
 }

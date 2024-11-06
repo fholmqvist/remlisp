@@ -15,17 +15,63 @@ type Error struct {
 }
 
 func (e Error) String(input []byte) string {
-	// TODO: Take input and calculate row/col.
-	if e.Start == e.End {
-		e.End += 1
+	var (
+		row    = 1
+		start  strings.Builder
+		middle strings.Builder
+		end    strings.Builder
+	)
+	for i := 0; i < len(input); i++ {
+		b := input[i]
+		var (
+			startInner  strings.Builder
+			middleInner strings.Builder
+			endInner    strings.Builder
+		)
+		for i < e.Start {
+			startInner.WriteByte(b)
+			i++
+			b = input[i]
+			if b == '\n' {
+				start.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				start.WriteString(h.Code(startInner.String()))
+				startInner.Reset()
+				row++
+			}
+		}
+		for i <= e.End {
+			middleInner.WriteByte(b)
+			i++
+			b = input[i]
+			if i >= e.End {
+				middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				middle.WriteString(h.ErrorCode(middleInner.String()))
+				break
+			}
+			if b == '\n' {
+				middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				middle.WriteString(h.ErrorCode(middleInner.String()))
+				middleInner.Reset()
+				row++
+			}
+		}
+		for i < len(input)-1 {
+			endInner.WriteByte(b)
+			i++
+			b = input[i]
+			if b == '\n' {
+				end.WriteString(h.Code(endInner.String()))
+				endInner.Reset()
+				row++
+			}
+		}
+		end.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
 	}
-	rowi := 0
-	row := h.Bold(fmt.Sprintf(" %d |", rowi))
 	var errline strings.Builder
-	errline.WriteString(h.Code(string(input[:e.Start])))
-	errline.WriteString(h.ErrorCode(string(input[e.Start:e.End])))
-	errline.WriteString(h.Code(string(input[e.End:])))
-	return fmt.Sprintf("%s %s\n\n%s", row, errline.String(), e.Msg)
+	errline.WriteString(strings.TrimSpace(start.String()))
+	errline.WriteString(strings.TrimSpace(middle.String()))
+	errline.WriteString(strings.TrimSpace(end.String()))
+	return fmt.Sprintf("%s\n\n%s", errline.String(), e.Msg)
 }
 
 func FromToken(t tk.Token, msg string) *Error {

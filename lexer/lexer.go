@@ -217,10 +217,7 @@ func (l Lexer) peek() byte {
 }
 
 func (l Lexer) Pos() tk.Position {
-	return tk.Position{
-		Start: l.oldi,
-		End:   l.i,
-	}
+	return tk.NewPos(l.oldi, l.i)
 }
 
 func isNumber(b, b2 byte) bool {
