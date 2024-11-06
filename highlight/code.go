@@ -105,8 +105,7 @@ func code(str string, errorColor bool) string {
 func isPurple(s string) bool {
 	s = strings.TrimSpace(s)
 	switch s {
-	case "func", "if", "switch", "case", "default", "for", "break", "continue", "return", "var",
-		"const", "package", "import", "end", "struct", "else", "match", "union", "type":
+	case "fn", "if", "cond", "case", "match", "while", "break", "continue", "var":
 		return true
 	default:
 		return false
@@ -116,8 +115,7 @@ func isPurple(s string) bool {
 func isBlue(s string) bool {
 	s = strings.TrimSpace(s)
 	switch s {
-	case ":=", "=", "+", "-", "*", "/", "%", "!", "==", "!=", "<", ">", "<=", ">=", "&&", "||",
-		"+=", "-=", "*=", "/=", "%=", "++", "--":
+	case ":=", "=", "+", "-", "*", "/", "%", "!", "!=", "<", ">", "<=", ">=":
 		return true
 	default:
 		return false
@@ -133,7 +131,7 @@ func isGreen(s string) bool {
 		return true
 	}
 	switch s {
-	case "true", "false", "nil", "int", "string", "float", "bool":
+	case "true", "false", "nil":
 		return true
 	default:
 		return false
