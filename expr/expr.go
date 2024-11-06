@@ -97,7 +97,7 @@ type Atom struct {
 func (Atom) Expr() {}
 
 func (a Atom) String() string {
-	return a.V
+	return fmt.Sprintf(":%s", a.V)
 }
 
 func (a Atom) Pos() tk.Position {

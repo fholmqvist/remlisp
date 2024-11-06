@@ -103,7 +103,7 @@ type Atom struct {
 func (Atom) Token() {}
 
 func (a Atom) String() string {
-	return a.V
+	return fmt.Sprintf(":%s", a.V)
 }
 
 func (a Atom) Pos() Position {

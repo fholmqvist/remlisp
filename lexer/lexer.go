@@ -247,7 +247,7 @@ func isString(b byte) bool {
 }
 
 func isComment(b byte) bool {
-	return b == '#'
+	return b == ';'
 }
 
 func isOperator(b byte) bool {
