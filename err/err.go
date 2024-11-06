@@ -16,6 +16,9 @@ type Error struct {
 
 func (e Error) String(input []byte) string {
 	// TODO: Take input and calculate row/col.
+	if e.Start == e.End {
+		e.End += 1
+	}
 	rowi := 0
 	row := h.Bold(fmt.Sprintf(" %d |", rowi))
 	var errline strings.Builder
