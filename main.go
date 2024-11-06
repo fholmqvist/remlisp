@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/fholmqvist/remlisp/compiler"
 	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
@@ -36,6 +38,15 @@ func main() {
 		exite("parse error", bb, erre)
 	}
 	prettyPrintExprs(exprs)
+	comp, err := compiler.New(exprs)
+	if err != nil {
+		exit("error instantiating compiler", err)
+	}
+	code, err := comp.Compile(exprs)
+	if err != nil {
+		exit("compile error", err)
+	}
+	prettyPrintCode(code)
 }
 
 func prettyPrintTokens(tokens []tk.Token) {
@@ -62,6 +73,20 @@ func prettyPrintExprs(exprs []ex.Expr) {
 		}
 	} else {
 		fmt.Println("<no expressions>")
+	}
+	printLine()
+}
+
+func prettyPrintCode(code string) {
+	fmt.Printf("%s\n", h.Bold("CODE ==============="))
+	if len(code) > 0 {
+		for i, line := range strings.Split(code, "\n") {
+			num := fmt.Sprintf("%.4d", i)
+			fmt.Printf("%s | %s (%T)\n",
+				h.Gray(num), h.Code(line), line)
+		}
+	} else {
+		fmt.Println("<no code>")
 	}
 	printLine()
 }

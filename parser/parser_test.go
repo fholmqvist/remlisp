@@ -71,6 +71,10 @@ func TestParse(t *testing.T) {
 			input:  "[1 2 3 4]",
 			output: "[1 2 3 4]",
 		},
+		{
+			input:  "{:a 2 :b 4}",
+			output: "{:a 2 :b 4}",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
