@@ -42,6 +42,27 @@ func (p *Parser) Parse() ([]ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
+	switch t := p.tokens[p.i].(type) {
+	case tk.Int:
+		return p.parseInt(t)
+	case tk.Float:
+		return p.parseFloat(t)
+	case tk.LeftParen:
+		return p.parseList()
+	default:
+		return nil, p.errLastTokenType("unexpected token", p.tokens[p.i])
+	}
+}
+
+func (p *Parser) parseInt(i tk.Int) (ex.Expr, *e.Error) {
+	return nil, nil
+}
+
+func (p *Parser) parseFloat(f tk.Float) (ex.Expr, *e.Error) {
+	return nil, nil
+}
+
+func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	return nil, nil
 }
 
