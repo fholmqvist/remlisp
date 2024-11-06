@@ -55,8 +55,9 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 		return l.lexIdent()
 	case isString(l.ch):
 		return l.lexString()
-	case isChar(l.ch):
-		return l.lexChar()
+	case isColon(l.ch):
+		l.step()
+		return l.lexAtom()
 	case isComment(l.ch):
 		for l.inRange() && l.ch != '\n' {
 			l.step()
@@ -168,17 +169,17 @@ func (l *Lexer) lexString() (tk.String, *e.Error) {
 	}, nil
 }
 
-func (l *Lexer) lexChar() (tk.Char, *e.Error) {
-	line := []byte{}
-	l.step()
-	for l.inRange() && l.ch != '\'' {
-		line = append(line, l.ch)
-		l.step()
+func (l *Lexer) lexAtom() (tk.Token, *e.Error) {
+	ident, err := l.lexIdent()
+	if err != nil {
+		return nil, err
 	}
-	l.step()
-	return tk.Char{
-		V: [2]byte(line[0:2]),
-		P: l.Pos(),
+	return tk.Atom{
+		V: ident.String(),
+		P: tk.Position{
+			Start: l.oldi,
+			End:   l.i,
+		},
 	}, nil
 }
 
@@ -243,10 +244,6 @@ func isIdent(b byte) bool {
 
 func isString(b byte) bool {
 	return b == '"'
-}
-
-func isChar(b byte) bool {
-	return b == '\''
 }
 
 func isComment(b byte) bool {
@@ -315,6 +312,10 @@ func isRightBracket(b byte) bool {
 
 func isDot(b byte) bool {
 	return b == '.'
+}
+
+func isColon(b byte) bool {
+	return b == ':'
 }
 
 func isDelimiter(b byte) bool {

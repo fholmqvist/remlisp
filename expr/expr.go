@@ -89,6 +89,21 @@ func (i Identifier) Pos() tk.Position {
 	return i.P
 }
 
+type Atom struct {
+	V string
+	P tk.Position
+}
+
+func (Atom) Expr() {}
+
+func (a Atom) String() string {
+	return a.V
+}
+
+func (a Atom) Pos() tk.Position {
+	return a.P
+}
+
 type Op struct {
 	Op operator.Operator
 	P  tk.Position

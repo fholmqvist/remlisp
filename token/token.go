@@ -95,22 +95,19 @@ func (s String) Pos() Position {
 	return s.P
 }
 
-type Char struct {
-	V [2]byte
+type Atom struct {
+	V string
 	P Position
 }
 
-func (Char) Token() {}
+func (Atom) Token() {}
 
-func (c Char) String() string {
-	if c.V[1] == 0 {
-		return fmt.Sprintf("%q", c.V[0])
-	}
-	return fmt.Sprintf("%q", c.V)
+func (a Atom) String() string {
+	return a.V
 }
 
-func (c Char) Pos() Position {
-	return c.P
+func (a Atom) Pos() Position {
+	return a.P
 }
 
 type Operator struct {

@@ -58,6 +58,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseString(t)
 	case tk.Identifier:
 		return p.parseIdentifier(t)
+	case tk.Atom:
+		return p.parseAtom(t)
 	case tk.Operator:
 		return p.parseOperator(t)
 	case tk.LeftParen:
@@ -96,6 +98,10 @@ func (p *Parser) parseString(s tk.String) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseIdentifier(i tk.Identifier) (ex.Expr, *e.Error) {
 	return ex.Identifier{V: i.V, P: i.P}, nil
+}
+
+func (p *Parser) parseAtom(a tk.Atom) (ex.Expr, *e.Error) {
+	return ex.Atom{V: a.V, P: a.P}, nil
 }
 
 func (p *Parser) parseList() (ex.Expr, *e.Error) {
