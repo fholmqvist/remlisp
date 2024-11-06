@@ -18,7 +18,6 @@ func NewPos(start, end int) Position {
 }
 
 func (p Position) String() string {
-	// TODO: Take input and calculate row/col.
 	return fmt.Sprintf("[byte index %d-%d]", p.Start+1, p.End+1)
 }
 
