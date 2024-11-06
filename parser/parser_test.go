@@ -56,6 +56,18 @@ func TestParse(t *testing.T) {
 			output: "\"example_string\"",
 		},
 		{
+			input:  ":a",
+			output: ":a",
+		},
+		{
+			input:  "+",
+			output: "+",
+		},
+		{
+			input:  "(1 2 3 4)",
+			output: "(1 2 3 4)",
+		},
+		{
 			input:  "[1 2 3 4]",
 			output: "[1 2 3 4]",
 		},
