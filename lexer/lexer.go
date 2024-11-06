@@ -14,12 +14,8 @@ type Lexer struct {
 	input string
 	ch    byte
 
-	i int
-
-	row    int
-	oldrow int
-	col    int
-	oldcol int
+	i    int
+	oldi int
 }
 
 func New(input []byte) (*Lexer, error) {
@@ -29,8 +25,6 @@ func New(input []byte) (*Lexer, error) {
 	return &Lexer{
 		input: string(input),
 		ch:    input[0],
-		row:   1,
-		col:   1,
 	}, nil
 }
 
@@ -52,8 +46,7 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	if !l.inRange() {
 		return nil, nil
 	}
-	l.oldrow = l.row
-	l.oldcol = l.col
+	l.oldi = l.i
 	p := l.peek()
 	switch {
 	case isNumber(l.ch, p):
@@ -117,11 +110,9 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 		f, err := strconv.ParseFloat(string(line), 64)
 		if err != nil {
 			return nil, &e.Error{
-				Msg:      fmt.Sprintf("invalid number: %q", line),
-				RowStart: l.oldrow,
-				RowEnd:   l.row,
-				Start:    l.oldcol,
-				End:      l.col,
+				Msg:   fmt.Sprintf("invalid number: %q", line),
+				Start: l.oldi,
+				End:   l.i,
 			}
 		}
 		return tk.Float{
@@ -132,11 +123,9 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 		i, err := strconv.Atoi(string(line))
 		if err != nil {
 			return nil, &e.Error{
-				Msg:      fmt.Sprintf("invalid number: %q", line),
-				RowStart: l.oldrow,
-				RowEnd:   l.row,
-				Start:    l.oldcol,
-				End:      l.col,
+				Msg:   fmt.Sprintf("invalid number: %q", line),
+				Start: l.oldi,
+				End:   l.i,
 			}
 		}
 		return tk.Int{
@@ -213,13 +202,6 @@ func (l *Lexer) step() {
 		return
 	}
 	l.ch = l.input[l.i]
-	if l.ch == '\n' {
-		l.row++
-		l.col = 1
-		l.oldcol = 1
-	} else {
-		l.col++
-	}
 }
 
 func (l Lexer) inRange() bool {
@@ -235,10 +217,8 @@ func (l Lexer) peek() byte {
 
 func (l Lexer) Pos() tk.Position {
 	return tk.Position{
-		RowStart: l.oldrow,
-		RowEnd:   l.row,
-		Start:    l.oldcol,
-		End:      l.col,
+		Start: l.oldi,
+		End:   l.i,
 	}
 }
 

@@ -76,6 +76,6 @@ func exit(context string, err error) {
 }
 
 func exite(context string, input []byte, err *e.Error) {
-	fmt.Printf("\n%s:\n\n%s\n\n", h.Bold(context), err.String(input))
+	fmt.Printf("%s:\n\n%s\n\n", h.Bold(context), err.String(input))
 	os.Exit(1)
 }

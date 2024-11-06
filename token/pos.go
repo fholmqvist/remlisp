@@ -3,21 +3,18 @@ package token
 import "fmt"
 
 type Position struct {
-	RowStart int
-	RowEnd   int
-	Start    int
-	End      int
+	Start int
+	End   int
 }
 
 func (p Position) String() string {
-	return fmt.Sprintf("[%d:%d-%d]", p.RowStart, p.Start, p.End)
+	// TODO: Take input and calculate row/col.
+	return fmt.Sprintf("[byte index %d-%d]", p.Start+1, p.End+1)
 }
 
 func Between(a, b Position) Position {
 	return Position{
-		RowStart: a.RowStart,
-		RowEnd:   b.RowEnd,
-		Start:    a.Start,
-		End:      b.End,
+		Start: a.Start,
+		End:   b.End,
 	}
 }
