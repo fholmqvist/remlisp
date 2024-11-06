@@ -44,6 +44,51 @@ func (f Float) Pos() tk.Position {
 	return f.P
 }
 
+type Bool struct {
+	V bool
+	P tk.Position
+}
+
+func (Bool) Expr() {}
+
+func (b Bool) String() string {
+	return fmt.Sprintf("%t", b.V)
+}
+
+func (b Bool) Pos() tk.Position {
+	return b.P
+}
+
+type String struct {
+	V string
+	P tk.Position
+}
+
+func (String) Expr() {}
+
+func (s String) String() string {
+	return fmt.Sprintf("%q", s.V)
+}
+
+func (s String) Pos() tk.Position {
+	return s.P
+}
+
+type Identifier struct {
+	V string
+	P tk.Position
+}
+
+func (Identifier) Expr() {}
+
+func (i Identifier) String() string {
+	return i.V
+}
+
+func (i Identifier) Pos() tk.Position {
+	return i.P
+}
+
 type Op struct {
 	Op operator.Operator
 	P  tk.Position

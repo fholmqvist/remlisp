@@ -52,6 +52,12 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseInt(t)
 	case tk.Float:
 		return p.parseFloat(t)
+	case tk.Bool:
+		return p.parseBool(t)
+	case tk.String:
+		return p.parseString(t)
+	case tk.Identifier:
+		return p.parseIdentifier(t)
 	case tk.Operator:
 		return p.parseOperator(t)
 	case tk.LeftParen:
@@ -78,6 +84,18 @@ func (p *Parser) parseOperator(o tk.Operator) (ex.Expr, *e.Error) {
 		Op: op,
 		P:  o.P,
 	}, nil
+}
+
+func (p *Parser) parseBool(b tk.Bool) (ex.Expr, *e.Error) {
+	return ex.Bool{V: b.V, P: b.P}, nil
+}
+
+func (p *Parser) parseString(s tk.String) (ex.Expr, *e.Error) {
+	return ex.String{V: s.V, P: s.P}, nil
+}
+
+func (p *Parser) parseIdentifier(i tk.Identifier) (ex.Expr, *e.Error) {
+	return ex.Identifier{V: i.V, P: i.P}, nil
 }
 
 func (p *Parser) parseList() (ex.Expr, *e.Error) {
