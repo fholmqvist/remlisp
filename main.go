@@ -5,8 +5,10 @@ import (
 	"os"
 
 	e "github.com/fholmqvist/remlisp/err"
+	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
+	"github.com/fholmqvist/remlisp/parser"
 	tk "github.com/fholmqvist/remlisp/token"
 )
 
@@ -24,6 +26,15 @@ func main() {
 		exite("lexing error", bb, erre)
 	}
 	prettyPrintTokens(tokens)
+	parser, err := parser.New(tokens)
+	if err != nil {
+		exit("error instantiating parser", err)
+	}
+	exprs, erre := parser.Parse()
+	if erre != nil {
+		exite("parse error", bb, erre)
+	}
+	prettyPrintExprs(exprs)
 }
 
 func prettyPrintTokens(tokens []tk.Token) {
@@ -36,6 +47,20 @@ func prettyPrintTokens(tokens []tk.Token) {
 		}
 	} else {
 		fmt.Println("<no tokens>")
+	}
+	printLine()
+}
+
+func prettyPrintExprs(exprs []ex.Expr) {
+	fmt.Printf("%s\n", h.Bold("EXPRESSIONS ========"))
+	if len(exprs) > 0 {
+		for i, e := range exprs {
+			num := fmt.Sprintf("%.4d", i)
+			fmt.Printf("%s | %s (%T)\n",
+				h.Gray(num), h.Code(e.String()), e)
+		}
+	} else {
+		fmt.Println("<no expressions>")
 	}
 	printLine()
 }

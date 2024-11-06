@@ -148,7 +148,7 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 
 func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 	line := []byte{}
-	for l.inRange() && isIdent(l.ch) && !isDelimiter(l.ch) {
+	for l.inRange() && isIdent(l.ch) && !isDelimiter(l.ch) || isDot(l.ch) {
 		line = append(line, l.ch)
 		l.step()
 	}
