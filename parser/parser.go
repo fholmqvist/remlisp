@@ -7,6 +7,7 @@ import (
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
 	tk "github.com/fholmqvist/remlisp/token"
+	"github.com/fholmqvist/remlisp/token/operator"
 )
 
 type Parser struct {
@@ -51,6 +52,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseInt(t)
 	case tk.Float:
 		return p.parseFloat(t)
+	case tk.Operator:
+		return p.parseOperator(t)
 	case tk.LeftParen:
 		return p.parseList()
 	default:
@@ -59,15 +62,40 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseInt(i tk.Int) (ex.Expr, *e.Error) {
-	return nil, nil
+	return ex.Int{V: i.V, P: i.P}, nil
 }
 
 func (p *Parser) parseFloat(f tk.Float) (ex.Expr, *e.Error) {
-	return nil, nil
+	return ex.Float{V: f.V, P: f.P}, nil
+}
+
+func (p *Parser) parseOperator(o tk.Operator) (ex.Expr, *e.Error) {
+	op, err := operator.From(o.V)
+	if err != nil {
+		return nil, e.FromToken(o, err.Error())
+	}
+	return ex.Op{
+		Op: op,
+		P:  o.P,
+	}, nil
 }
 
 func (p *Parser) parseList() (ex.Expr, *e.Error) {
-	return nil, nil
+	list := &ex.List{}
+	for p.inRange() && !p.is(tk.RightParen{}) {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if expr == nil {
+			continue
+		}
+		list.Append(expr)
+	}
+	if err := p.eat(tk.RightParen{}); err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 func (p *Parser) next() (tk.Token, *e.Error) {
@@ -77,6 +105,10 @@ func (p *Parser) next() (tk.Token, *e.Error) {
 	t := p.tokens[p.i]
 	p.i++
 	return t, nil
+}
+
+func (p *Parser) is(t tk.Token) bool {
+	return fmt.Sprintf("%T", p.tokens[p.i]) == fmt.Sprintf("%T", t)
 }
 
 func (p *Parser) eat(t tk.Token) *e.Error {

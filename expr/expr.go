@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tk "github.com/fholmqvist/remlisp/token"
+	"github.com/fholmqvist/remlisp/token/operator"
 )
 
 type Expr interface {
@@ -44,14 +45,14 @@ func (f Float) Pos() tk.Position {
 }
 
 type Op struct {
-	Op string
+	Op operator.Operator
 	P  tk.Position
 }
 
 func (Op) Expr() {}
 
 func (o Op) String() string {
-	return o.Op
+	return o.Op.String()
 }
 
 func (o Op) Pos() tk.Position {
@@ -80,6 +81,10 @@ func (l List) String() string {
 
 func (l List) Pos() tk.Position {
 	return l.P
+}
+
+func (l *List) Append(e Expr) {
+	l.V = append(l.V, e)
 }
 
 /*
