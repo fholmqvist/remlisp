@@ -66,6 +66,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseList()
 	case tk.LeftBracket:
 		return p.parseVec()
+	case tk.LeftBrace:
+		return p.parseMap()
 	default:
 		return nil, p.errLastTokenType("unexpected token", next.String())
 	}
@@ -140,6 +142,25 @@ func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 		return nil, err
 	}
 	return vec, nil
+}
+
+func (p *Parser) parseMap() (ex.Expr, *e.Error) {
+	mp := &ex.Map{}
+	for p.inRange() && !p.is(tk.RightBrace{}) {
+		k, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		v, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		mp.AddKV(k, v)
+	}
+	if err := p.eat(tk.RightBrace{}); err != nil {
+		return nil, err
+	}
+	return mp, nil
 }
 
 func (p *Parser) next() (tk.Token, *e.Error) {

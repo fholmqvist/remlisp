@@ -175,6 +175,34 @@ func (v *Vec) Append(e Expr) {
 	v.V = append(v.V, e)
 }
 
+type Map struct {
+	V []Expr
+	P tk.Position
+}
+
+func (Map) Expr() {}
+
+func (m Map) String() string {
+	var s strings.Builder
+	s.WriteByte('{')
+	for i, e := range m.V {
+		if i > 0 {
+			s.WriteByte(' ')
+		}
+		s.WriteString(e.String())
+	}
+	s.WriteByte('}')
+	return s.String()
+}
+
+func (m Map) Pos() tk.Position {
+	return m.P
+}
+
+func (m *Map) AddKV(k, v Expr) {
+	m.V = append(m.V, k, v)
+}
+
 /*
 	nil
 	quote

@@ -86,6 +86,12 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	case isRightBracket(l.ch):
 		l.step()
 		return tk.RightBracket{P: l.Pos()}, nil
+	case isLeftBrace(l.ch):
+		l.step()
+		return tk.LeftBrace{P: l.Pos()}, nil
+	case isRightBrace(l.ch):
+		l.step()
+		return tk.RightBrace{P: l.Pos()}, nil
 	case isDot(l.ch):
 		l.step()
 		return tk.Dot{P: l.Pos()}, nil
@@ -307,6 +313,14 @@ func isRightBracket(b byte) bool {
 	return b == ']'
 }
 
+func isLeftBrace(b byte) bool {
+	return b == '{'
+}
+
+func isRightBrace(b byte) bool {
+	return b == '}'
+}
+
 func isDot(b byte) bool {
 	return b == '.'
 }
@@ -317,7 +331,7 @@ func isColon(b byte) bool {
 
 func isDelimiter(b byte) bool {
 	switch b {
-	case ' ', ',', ':', '\n', '\t', '[', ']', '(', ')',
+	case ' ', ',', ':', '\n', '\t', '[', ']', '(', ')', '{', '}',
 		'+', '-', '*', '/', '%', '=', '<', '>', '!':
 		return true
 	default:

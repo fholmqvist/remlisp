@@ -195,6 +195,34 @@ func (c RightBracket) Pos() Position {
 	return c.P
 }
 
+type LeftBrace struct {
+	P Position
+}
+
+func (LeftBrace) Token() {}
+
+func (o LeftBrace) String() string {
+	return "{"
+}
+
+func (o LeftBrace) Pos() Position {
+	return o.P
+}
+
+type RightBrace struct {
+	P Position
+}
+
+func (RightBrace) Token() {}
+
+func (c RightBrace) String() string {
+	return "}"
+}
+
+func (c RightBrace) Pos() Position {
+	return c.P
+}
+
 type Dot struct {
 	P Position
 }
