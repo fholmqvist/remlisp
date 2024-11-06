@@ -147,19 +147,41 @@ func (l *List) Append(e Expr) {
 	l.V = append(l.V, e)
 }
 
+type Vec struct {
+	V []Expr
+	P tk.Position
+}
+
+func (Vec) Expr() {}
+
+func (v Vec) String() string {
+	var s strings.Builder
+	s.WriteByte('[')
+	for i, e := range v.V {
+		if i > 0 {
+			s.WriteByte(' ')
+		}
+		s.WriteString(e.String())
+	}
+	s.WriteByte(']')
+	return s.String()
+}
+
+func (v Vec) Pos() tk.Position {
+	return v.P
+}
+
+func (v *Vec) Append(e Expr) {
+	v.V = append(v.V, e)
+}
+
 /*
-	bool
-	ident
-	string
-	atom
 	nil
 	quote
 	args
 	params
 	fn
-	list
 	dotlist
-	vector
 	keyval
 	map
 	do

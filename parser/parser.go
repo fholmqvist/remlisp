@@ -64,8 +64,10 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseOperator(t)
 	case tk.LeftParen:
 		return p.parseList()
+	case tk.LeftBracket:
+		return p.parseVec()
 	default:
-		return nil, p.errLastTokenType("unexpected token", next)
+		return nil, p.errLastTokenType("unexpected token", next.String())
 	}
 }
 
@@ -122,6 +124,24 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	return list, nil
 }
 
+func (p *Parser) parseVec() (ex.Expr, *e.Error) {
+	vec := &ex.Vec{}
+	for p.inRange() && !p.is(tk.RightBracket{}) {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if expr == nil {
+			continue
+		}
+		vec.Append(expr)
+	}
+	if err := p.eat(tk.RightBracket{}); err != nil {
+		return nil, err
+	}
+	return vec, nil
+}
+
 func (p *Parser) next() (tk.Token, *e.Error) {
 	if !p.inRange() {
 		return nil, p.errLastTokenType("unexpected end of input", nil)
@@ -148,7 +168,7 @@ func (p *Parser) eat(t tk.Token) *e.Error {
 
 func (p Parser) errLastTokenType(msg string, args any) *e.Error {
 	return e.FromToken(p.tokens[p.i-1],
-		fmt.Sprintf("%s: %s: %T",
+		fmt.Sprintf("%s: %s: %q",
 			h.Bold(p.tokens[p.i-1].Pos().String()),
 			h.Red(msg),
 			args))
