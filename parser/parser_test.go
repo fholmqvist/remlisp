@@ -75,6 +75,10 @@ func TestParse(t *testing.T) {
 			input:  "{:a 2 :b 4}",
 			output: "{:a 2 :b 4}",
 		},
+		{
+			input:  "(fn add [x y] (+ x y))",
+			output: "(fn add [x y] (+ x y))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

@@ -143,6 +143,42 @@ func (l List) Pos() tk.Position {
 	return l.P
 }
 
+func (l *List) Head() Expr {
+	if len(l.V) == 0 {
+		return nil
+	}
+	return l.V[0]
+}
+
+func (l *List) Pop() Expr {
+	if len(l.V) == 0 {
+		return nil
+	}
+	hd := l.V[0]
+	l.V = l.V[1:]
+	return hd
+}
+
+func (l *List) PopIdentifier() (Identifier, Expr, bool) {
+	if len(l.V) == 0 {
+		return Identifier{}, nil, false
+	}
+	hd := l.V[0]
+	l.V = l.V[1:]
+	id, ok := hd.(Identifier)
+	return id, hd, ok
+}
+
+func (l *List) PopVec() (*Vec, Expr, bool) {
+	if len(l.V) == 0 {
+		return nil, nil, false
+	}
+	hd := l.V[0]
+	l.V = l.V[1:]
+	v, ok := hd.(*Vec)
+	return v, hd, ok
+}
+
 func (l *List) Append(e Expr) {
 	l.V = append(l.V, e)
 }
@@ -201,6 +237,31 @@ func (m Map) Pos() tk.Position {
 
 func (m *Map) AddKV(k, v Expr) {
 	m.V = append(m.V, k, v)
+}
+
+type Fn struct {
+	Name   string
+	Params *Vec
+	Body   Expr
+	P      tk.Position
+}
+
+func (Fn) Expr() {}
+
+func (f Fn) String() string {
+	var s strings.Builder
+	s.WriteString("(fn ")
+	s.WriteString(f.Name)
+	s.WriteString(" ")
+	s.WriteString(f.Params.String())
+	s.WriteString(" ")
+	s.WriteString(f.Body.String())
+	s.WriteByte(')')
+	return s.String()
+}
+
+func (f Fn) Pos() tk.Position {
+	return f.P
 }
 
 /*

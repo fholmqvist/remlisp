@@ -57,10 +57,10 @@ func TestCompiler(t *testing.T) {
 			input:  ":a",
 			output: "\":a\"",
 		},
-		{
-			input:  "+",
-			output: "+",
-		},
+		{input: "(+ 1 1 1)", output: "(1 + 1 + 1)"},
+		{input: "(- 1 1 1)", output: "(1 - 1 - 1)"},
+		{input: "(* 1 1 1)", output: "(1 * 1 * 1)"},
+		{input: "(/ 1 1 1)", output: "(1 / 1 / 1)"},
 		{
 			input:  "(1 2 3 4)",
 			output: "(1 2 3 4)",
@@ -68,6 +68,10 @@ func TestCompiler(t *testing.T) {
 		{
 			input:  "[1 2 3 4]",
 			output: "[1 2 3 4]",
+		},
+		{
+			input:  "(fn add [x y] (+ x y))",
+			output: "const add = (x, y) => (x + y)",
 		},
 	}
 	for _, tt := range tests {

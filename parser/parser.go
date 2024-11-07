@@ -123,7 +123,41 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	if err := p.eat(tk.RightParen{}); err != nil {
 		return nil, err
 	}
-	return list, nil
+	hd := list.Head()
+	if hd == nil {
+		return list, nil
+	}
+	switch hd.String() {
+	case "fn":
+		return p.parseFn(list)
+	default:
+		return list, nil
+	}
+}
+
+func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
+	fn := list.Pop()
+	if fn == nil {
+		return nil, p.errLastTokenType("expected function", fn)
+	}
+	name, actual, ok := list.PopIdentifier()
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", actual)
+	}
+	params, actual, ok := list.PopVec()
+	if !ok {
+		return nil, p.errLastTokenType("expected parameters", actual)
+	}
+	body := list.Pop()
+	if body == nil {
+		return nil, p.errLastTokenType("expected body", body)
+	}
+	return &ex.Fn{
+		Name:   name.V,
+		Params: params,
+		Body:   body,
+		P:      tk.Between(fn.Pos(), body.Pos()),
+	}, nil
 }
 
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {
@@ -188,8 +222,15 @@ func (p *Parser) eat(t tk.Token) *e.Error {
 }
 
 func (p Parser) errLastTokenType(msg string, args any) *e.Error {
+	if args == nil {
+		return e.FromToken(p.tokens[p.i-1],
+			fmt.Sprintf("%s: %s: was %v",
+				h.Bold(p.tokens[p.i-1].Pos().String()),
+				h.Red(msg),
+				args))
+	}
 	return e.FromToken(p.tokens[p.i-1],
-		fmt.Sprintf("%s: %s: %q",
+		fmt.Sprintf("%s: %s: was %T",
 			h.Bold(p.tokens[p.i-1].Pos().String()),
 			h.Red(msg),
 			args))

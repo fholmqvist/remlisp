@@ -49,12 +49,12 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return e.V, nil
 	case ex.Atom:
 		return fmt.Sprintf("%q", e.String()), nil
-	case ex.Op:
-		return e.Op.String(), nil
 	case *ex.List:
 		return c.compileList(e)
 	case *ex.Vec:
 		return c.compileVec(e)
+	case *ex.Fn:
+		return c.compileFn(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -66,37 +66,57 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 		return "()", nil
 	}
 	hd := e.V[0].String()
-	switch hd {
-	default:
-		op, err := operator.From(hd)
-		if err == nil {
-			s.WriteByte('(')
-			for i, expr := range e.V[1:] {
-				code, err := c.compile(expr)
-				if err != nil {
-					return "", err
-				}
-				s.WriteString(code)
-				if i < len(e.V)-2 {
-					s.WriteString(fmt.Sprintf(" %s ", op.String()))
-				}
-			}
-			s.WriteByte(')')
-			return s.String(), nil
-		}
-		s.WriteByte('(')
-		for i, expr := range e.V {
-			code, err := c.compile(expr)
-			if err != nil {
-				return "", err
-			}
-			s.WriteString(code)
-			if i < len(e.V)-1 {
-				s.WriteByte(' ')
-			}
-		}
-		s.WriteByte(')')
+	op, err := operator.From(hd)
+	if err == nil {
+		return c.compileBinaryOperation(e, op)
 	}
+	s.WriteByte('(')
+	for i, expr := range e.V {
+		code, err := c.compile(expr)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(code)
+		if i < len(e.V)-1 {
+			s.WriteByte(' ')
+		}
+	}
+	s.WriteByte(')')
+	return s.String(), nil
+}
+
+func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, error) {
+	var s strings.Builder
+	s.WriteByte('(')
+	for i, expr := range e.V[1:] {
+		code, err := c.compile(expr)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(code)
+		if i < len(e.V)-2 {
+			s.WriteString(fmt.Sprintf(" %s ", op.String()))
+		}
+	}
+	s.WriteByte(')')
+	return s.String(), nil
+}
+
+func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
+	var s strings.Builder
+	s.WriteString(fmt.Sprintf("const %s = (", fn.Name))
+	for i, p := range fn.Params.V {
+		s.WriteString(p.String())
+		if i < len(fn.Params.V)-1 {
+			s.WriteString(", ")
+		}
+	}
+	s.WriteString(") => ")
+	body, err := c.compile(fn.Body)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(body)
 	return s.String(), nil
 }
 
