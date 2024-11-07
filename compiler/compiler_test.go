@@ -77,6 +77,14 @@ func TestCompiler(t *testing.T) {
 			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
 			output: "Array(10).fill(1).map((_, i) => i)",
 		},
+		{
+			input:  "(if (< 1 2) 1 2)",
+			output: "(() => (1 < 2) ? 1 : 2)()",
+		},
+		{
+			input:  "(do 1 2 3)",
+			output: "(() => { 1; 2; return 3; })()",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

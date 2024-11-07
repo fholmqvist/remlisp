@@ -63,6 +63,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileVariableArg(e)
 	case *ex.If:
 		return c.compileIf(e)
+	case *ex.Do:
+		return c.compileDo(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -97,14 +99,13 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 
 func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
 	var s strings.Builder
-	rest := e.V[1:]
-	for i, expr := range rest {
+	for i, expr := range e.V {
 		code, err := c.compile(expr)
 		if err != nil {
 			return "", err
 		}
 		s.WriteString(code)
-		if i < len(rest)-1 {
+		if i < len(e.V)-1 {
 			s.WriteByte('.')
 		}
 	}
@@ -192,6 +193,24 @@ func (c *Compiler) compileIf(e *ex.If) (string, error) {
 	}
 	s.WriteString(els)
 	s.WriteString(")()")
+	return s.String(), nil
+}
+
+func (c *Compiler) compileDo(e *ex.Do) (string, error) {
+	var s strings.Builder
+	s.WriteString("(() => { ")
+	for i, expr := range e.V {
+		code, err := c.compile(expr)
+		if err != nil {
+			return "", err
+		}
+		if i == len(e.V)-1 {
+			s.WriteString("return ")
+		}
+		s.WriteString(code)
+		s.WriteString("; ")
+	}
+	s.WriteString("})()")
 	return s.String(), nil
 }
 

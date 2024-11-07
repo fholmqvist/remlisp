@@ -140,6 +140,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseFn(list)
 	case "if":
 		return p.parseIf(list)
+	case "do":
+		return p.parseDo(list)
 	case ".":
 		return p.parseDotList(list)
 	default:
@@ -209,6 +211,16 @@ func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 	}, nil
 }
 
+func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
+	if len(list.V) == 0 {
+		return nil, p.errExpr(list, "expected do", list)
+	}
+	if len(list.V) == 1 {
+		return nil, p.errExpr(list, "expected body for do", nil)
+	}
+	return &ex.Do{V: list.V[1:], P: list.P}, nil
+}
+
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 	vec := &ex.Vec{}
 	for p.inRange() && !p.is(tk.RightBracket{}) {
@@ -234,7 +246,7 @@ func (p *Parser) parseDotList(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) == 1 {
 		return nil, p.errExpr(list, "expected arguments for dot list", nil)
 	}
-	return &ex.DotList{V: list.V, P: list.P}, nil
+	return &ex.DotList{V: list.V[1:], P: list.P}, nil
 }
 
 func (p *Parser) parseMap() (ex.Expr, *e.Error) {
