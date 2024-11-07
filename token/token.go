@@ -236,3 +236,17 @@ func (c Dot) String() string {
 func (c Dot) Pos() Position {
 	return c.P
 }
+
+type Ampersand struct {
+	P Position
+}
+
+func (Ampersand) Token() {}
+
+func (c Ampersand) String() string {
+	return "&"
+}
+
+func (c Ampersand) Pos() Position {
+	return c.P
+}

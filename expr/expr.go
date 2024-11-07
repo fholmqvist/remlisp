@@ -264,6 +264,21 @@ func (f Fn) Pos() tk.Position {
 	return f.P
 }
 
+type VariableArg struct {
+	V Identifier
+	P tk.Position
+}
+
+func (VariableArg) Expr() {}
+
+func (v VariableArg) String() string {
+	return fmt.Sprintf("& %s", v.V.String())
+}
+
+func (v VariableArg) Pos() tk.Position {
+	return v.P
+}
+
 /*
 	nil
 	quote

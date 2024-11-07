@@ -73,6 +73,10 @@ func TestCompiler(t *testing.T) {
 			input:  "(fn add [x y] (+ x y))",
 			output: "const add = (x, y) => (x + y)",
 		},
+		{
+			input:  "(fn id-array [& x] x)",
+			output: "const id_array = (...x) => x",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

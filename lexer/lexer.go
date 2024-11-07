@@ -95,6 +95,9 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	case isDot(l.ch):
 		l.step()
 		return tk.Dot{P: l.Pos()}, nil
+	case isAmpersand(l.ch):
+		l.step()
+		return tk.Ampersand{P: l.Pos()}, nil
 	default:
 		pos := l.Pos()
 		return nil, e.FromPosition(pos, fmt.Sprintf("%s %s: %q",
@@ -144,7 +147,7 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 
 func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 	line := []byte{}
-	for l.inRange() && isIdent(l.ch) && !isDelimiter(l.ch) || isDot(l.ch) {
+	for l.inRange() && isIdent(l.ch) && !isDelimiter(l.ch) || isDot(l.ch) || isMinus(l.ch) {
 		line = append(line, l.ch)
 		l.step()
 	}
@@ -270,13 +273,13 @@ func isComplexOperator(a, b byte) bool {
 		return true
 	case a == '>' && b == '=':
 		return true
-	case a == '+' && b == '+':
-		return true
-	case a == '-' && b == '-':
-		return true
 	default:
 		return false
 	}
+}
+
+func isMinus(b byte) bool {
+	return b == '-'
 }
 
 func isComma(b byte) bool {
@@ -315,10 +318,13 @@ func isColon(b byte) bool {
 	return b == ':'
 }
 
+func isAmpersand(b byte) bool {
+	return b == '&'
+}
+
 func isDelimiter(b byte) bool {
 	switch b {
-	case ' ', ',', ':', '\n', '\t', '[', ']', '(', ')', '{', '}',
-		'+', '-', '*', '/', '%', '=', '<', '>', '!':
+	case ' ', ',', ':', '\n', '\t', '[', ']', '(', ')', '{', '}':
 		return true
 	default:
 		return false

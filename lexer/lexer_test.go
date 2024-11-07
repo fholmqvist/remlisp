@@ -72,6 +72,7 @@ func TestLexer(t *testing.T) {
 		{input: "%", output: "%"},
 		{input: " 1", output: "1"},
 		{input: ".", output: "."},
+		{input: "&", output: "&"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

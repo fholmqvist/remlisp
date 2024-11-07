@@ -55,6 +55,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileVec(e)
 	case *ex.Fn:
 		return c.compileFn(e)
+	case *ex.VariableArg:
+		return c.compileVariableArg(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -104,9 +106,13 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 
 func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("const %s = (", fn.Name))
+	s.WriteString(fmt.Sprintf("const %s = (", fixName(fn.Name)))
 	for i, p := range fn.Params.V {
-		s.WriteString(p.String())
+		pstr, err := c.compile(p)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(pstr)
 		if i < len(fn.Params.V)-1 {
 			s.WriteString(", ")
 		}
@@ -135,4 +141,16 @@ func (c *Compiler) compileVec(e *ex.Vec) (string, error) {
 	}
 	s.WriteByte(']')
 	return s.String(), nil
+}
+
+func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
+	arg, err := c.compile(e.V)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("...%s", arg), nil
+}
+
+func fixName(s string) string {
+	return strings.ReplaceAll(s, "-", "_")
 }

@@ -68,8 +68,10 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseVec()
 	case tk.LeftBrace:
 		return p.parseMap()
+	case tk.Ampersand:
+		return p.parseVariableArg(t.P)
 	default:
-		return nil, p.errLastTokenType("unexpected token", next.String())
+		return nil, p.errLastTokenType("unexpected token", next)
 	}
 }
 
@@ -197,6 +199,21 @@ func (p *Parser) parseMap() (ex.Expr, *e.Error) {
 	return mp, nil
 }
 
+func (p *Parser) parseVariableArg(pos tk.Position) (ex.Expr, *e.Error) {
+	arg, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	ident, ok := arg.(ex.Identifier)
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", arg)
+	}
+	return &ex.VariableArg{
+		V: ident,
+		P: tk.Between(pos, arg.Pos()),
+	}, nil
+}
+
 func (p *Parser) next() (tk.Token, *e.Error) {
 	if !p.inRange() {
 		return nil, p.errLastTokenType("unexpected end of input", nil)
@@ -222,18 +239,27 @@ func (p *Parser) eat(t tk.Token) *e.Error {
 }
 
 func (p Parser) errLastTokenType(msg string, args any) *e.Error {
+	t := p.tokens[p.i-1]
+	pos := h.Bold(p.tokens[p.i-1].Pos().String())
 	if args == nil {
-		return e.FromToken(p.tokens[p.i-1],
-			fmt.Sprintf("%s: %s: was %v",
-				h.Bold(p.tokens[p.i-1].Pos().String()),
-				h.Red(msg),
-				args))
-	}
-	return e.FromToken(p.tokens[p.i-1],
-		fmt.Sprintf("%s: %s: was %T",
-			h.Bold(p.tokens[p.i-1].Pos().String()),
+		return e.FromToken(t, fmt.Sprintf("%s: %s: was %v",
+			pos,
 			h.Red(msg),
-			args))
+			args,
+		))
+	}
+	if _, ok := args.(tk.Token); ok {
+		return e.FromToken(t, fmt.Sprintf("%s: %s: %q",
+			pos,
+			h.Red(msg),
+			args,
+		))
+	}
+	return e.FromToken(t, fmt.Sprintf("%s: %s: was %T",
+		pos,
+		h.Red(msg),
+		args,
+	))
 }
 
 func (p Parser) inRange() bool {
