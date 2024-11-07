@@ -138,6 +138,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	switch hd.String() {
 	case "fn":
 		return p.parseFn(list)
+	case "if":
+		return p.parseIf(list)
 	case ".":
 		return p.parseDotList(list)
 	default:
@@ -181,6 +183,30 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 			P:      tk.Between(fn.Pos().BumpLeft(), body.Pos().BumpRight()),
 		}, nil
 	}
+}
+
+func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
+	iff := list.Pop()
+	if iff == nil {
+		return nil, p.errLastTokenType("expected if", iff)
+	}
+	cond := list.Pop()
+	if cond == nil {
+		return nil, p.errLastTokenType("expected condition", cond)
+	}
+	then := list.Pop()
+	if then == nil {
+		return nil, p.errLastTokenType("expected then", then)
+	}
+	els := list.Pop()
+	if els == nil {
+		return nil, p.errLastTokenType("expected else", els)
+	}
+	return &ex.If{
+		Cond: cond,
+		Then: then,
+		Else: els,
+	}, nil
 }
 
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {

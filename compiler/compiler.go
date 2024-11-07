@@ -61,6 +61,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileAnonymousFn(e)
 	case *ex.VariableArg:
 		return c.compileVariableArg(e)
+	case *ex.If:
+		return c.compileIf(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -167,6 +169,29 @@ func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, error) {
 		return "", err
 	}
 	s.WriteString(body)
+	return s.String(), nil
+}
+
+func (c *Compiler) compileIf(e *ex.If) (string, error) {
+	var s strings.Builder
+	s.WriteString("(() => ")
+	cond, err := c.compile(e.Cond)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(fmt.Sprintf("%s ? ", cond))
+	then, err := c.compile(e.Then)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(then)
+	s.WriteString(" : ")
+	els, err := c.compile(e.Else)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(els)
+	s.WriteString(")()")
 	return s.String(), nil
 }
 
