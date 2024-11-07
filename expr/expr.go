@@ -210,7 +210,6 @@ func (dl DotList) String() string {
 		}
 		s.WriteString(e.String())
 	}
-	s.WriteByte('.')
 	s.WriteByte(')')
 	return s.String()
 }
@@ -344,10 +343,6 @@ func (v VariableArg) Pos() tk.Position {
 /*
 	nil
 	quote
-	args
-	params
-	fn
-	dotlist
 	keyval
 	map
 	do

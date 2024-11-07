@@ -83,6 +83,10 @@ func TestParse(t *testing.T) {
 			input:  "(fn id-array [& x] x)",
 			output: "(fn id-array [& x] x)",
 		},
+		{
+			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
+			output: "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

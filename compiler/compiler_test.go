@@ -73,6 +73,10 @@ func TestCompiler(t *testing.T) {
 			input:  "(fn id-array [& x] x)",
 			output: "const id_array = (...x) => x",
 		},
+		{
+			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
+			output: "Array(10).fill(1).map((_, i) => i)",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
