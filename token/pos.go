@@ -21,6 +21,16 @@ func (p Position) String() string {
 	return fmt.Sprintf("[byte index %d-%d]", p.Start+1, p.End+1)
 }
 
+func (p Position) BumpLeft() Position {
+	p.Start--
+	return p
+}
+
+func (p Position) BumpRight() Position {
+	p.End++
+	return p
+}
+
 // Creates a new token that starts from a and ends at b.
 func Between(a, b Position) Position {
 	return Position{

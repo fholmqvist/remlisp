@@ -70,6 +70,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseMap()
 	case tk.Ampersand:
 		return p.parseVariableArg(t.P)
+	case tk.Dot:
+		return p.parseDot(t)
 	default:
 		return nil, p.errLastTokenType("unexpected token", next)
 	}
@@ -129,22 +131,33 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	if hd == nil {
 		return list, nil
 	}
+	list.P = tk.Between(
+		hd.Pos().BumpLeft(),
+		list.Last().Pos().BumpRight(),
+	)
 	switch hd.String() {
 	case "fn":
 		return p.parseFn(list)
+	case ".":
+		return p.parseDotList(list)
 	default:
 		return list, nil
 	}
 }
 
 func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
+	var anonymous bool
 	fn := list.Pop()
 	if fn == nil {
 		return nil, p.errLastTokenType("expected function", fn)
 	}
 	name, actual, ok := list.PopIdentifier()
 	if !ok {
-		return nil, p.errLastTokenType("expected identifier", actual)
+		if _, ok := actual.(*ex.Vec); ok {
+			anonymous = true
+		} else {
+			return nil, p.errLastTokenType("expected identifier", actual)
+		}
 	}
 	params, actual, ok := list.PopVec()
 	if !ok {
@@ -154,12 +167,20 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 	if body == nil {
 		return nil, p.errLastTokenType("expected body", body)
 	}
-	return &ex.Fn{
-		Name:   name.V,
-		Params: params,
-		Body:   body,
-		P:      tk.Between(fn.Pos(), body.Pos()),
-	}, nil
+	if anonymous {
+		return &ex.AnonymousFn{
+			Params: params,
+			Body:   body,
+			P:      tk.Between(fn.Pos().BumpLeft(), body.Pos().BumpRight()),
+		}, nil
+	} else {
+		return &ex.Fn{
+			Name:   name.V,
+			Params: params,
+			Body:   body,
+			P:      tk.Between(fn.Pos().BumpLeft(), body.Pos().BumpRight()),
+		}, nil
+	}
 }
 
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {
@@ -178,6 +199,16 @@ func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 		return nil, err
 	}
 	return vec, nil
+}
+
+func (p *Parser) parseDotList(list *ex.List) (ex.Expr, *e.Error) {
+	if len(list.V) == 0 {
+		return nil, p.errExpr(list, "expected dot list", list)
+	}
+	if len(list.V) == 1 {
+		return nil, p.errExpr(list, "expected arguments for dot list", nil)
+	}
+	return &ex.DotList{V: list.V, P: list.P}, nil
 }
 
 func (p *Parser) parseMap() (ex.Expr, *e.Error) {
@@ -211,6 +242,13 @@ func (p *Parser) parseVariableArg(pos tk.Position) (ex.Expr, *e.Error) {
 	return &ex.VariableArg{
 		V: ident,
 		P: tk.Between(pos, arg.Pos()),
+	}, nil
+}
+
+func (p *Parser) parseDot(dot tk.Dot) (ex.Identifier, *e.Error) {
+	return ex.Identifier{
+		V: ".",
+		P: dot.P,
 	}, nil
 }
 
@@ -260,6 +298,42 @@ func (p Parser) errLastTokenType(msg string, args any) *e.Error {
 		h.Red(msg),
 		args,
 	))
+}
+
+func (p Parser) errExpr(expr ex.Expr, msg string, args any) *e.Error {
+	pos := expr.Pos()
+	postr := h.Bold(pos.String())
+	if args == nil {
+		return &e.Error{
+			Msg: fmt.Sprintf("%s: %s: was %v",
+				postr,
+				h.Red(msg),
+				args,
+			),
+			Start: pos.Start,
+			End:   pos.End,
+		}
+	}
+	if _, ok := args.(tk.Token); ok {
+		return &e.Error{
+			Msg: fmt.Sprintf("%s: %s: %q",
+				postr,
+				h.Red(msg),
+				args,
+			),
+			Start: pos.Start,
+			End:   pos.End,
+		}
+	}
+	return &e.Error{
+		Msg: fmt.Sprintf("%s: %s: was %T",
+			postr,
+			h.Red(msg),
+			args,
+		),
+		Start: pos.Start,
+		End:   pos.End,
+	}
 }
 
 func (p Parser) inRange() bool {

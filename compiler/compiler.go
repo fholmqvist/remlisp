@@ -51,10 +51,14 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return fmt.Sprintf("%q", e.String()), nil
 	case *ex.List:
 		return c.compileList(e)
+	case *ex.DotList:
+		return c.compileDotList(e)
 	case *ex.Vec:
 		return c.compileVec(e)
 	case *ex.Fn:
 		return c.compileFn(e)
+	case *ex.AnonymousFn:
+		return c.compileAnonymousFn(e)
 	case *ex.VariableArg:
 		return c.compileVariableArg(e)
 	default:
@@ -72,18 +76,36 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 	if err == nil {
 		return c.compileBinaryOperation(e, op)
 	}
+	s.WriteString(hd)
 	s.WriteByte('(')
-	for i, expr := range e.V {
+	rest := e.V[1:]
+	for i, expr := range rest {
 		code, err := c.compile(expr)
 		if err != nil {
 			return "", err
 		}
 		s.WriteString(code)
-		if i < len(e.V)-1 {
+		if i < len(rest)-1 {
 			s.WriteByte(' ')
 		}
 	}
 	s.WriteByte(')')
+	return s.String(), nil
+}
+
+func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
+	var s strings.Builder
+	rest := e.V[1:]
+	for i, expr := range rest {
+		code, err := c.compile(expr)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(code)
+		if i < len(rest)-1 {
+			s.WriteByte('.')
+		}
+	}
 	return s.String(), nil
 }
 
@@ -107,6 +129,28 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("const %s = (", fixName(fn.Name)))
+	for i, p := range fn.Params.V {
+		pstr, err := c.compile(p)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(pstr)
+		if i < len(fn.Params.V)-1 {
+			s.WriteString(", ")
+		}
+	}
+	s.WriteString(") => ")
+	body, err := c.compile(fn.Body)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(body)
+	return s.String(), nil
+}
+
+func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, error) {
+	var s strings.Builder
+	s.WriteByte('(')
 	for i, p := range fn.Params.V {
 		pstr, err := c.compile(p)
 		if err != nil {

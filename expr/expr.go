@@ -150,6 +150,13 @@ func (l *List) Head() Expr {
 	return l.V[0]
 }
 
+func (l *List) Last() Expr {
+	if len(l.V) == 0 {
+		return nil
+	}
+	return l.V[len(l.V)-1]
+}
+
 func (l *List) Pop() Expr {
 	if len(l.V) == 0 {
 		return nil
@@ -164,8 +171,10 @@ func (l *List) PopIdentifier() (Identifier, Expr, bool) {
 		return Identifier{}, nil, false
 	}
 	hd := l.V[0]
-	l.V = l.V[1:]
 	id, ok := hd.(Identifier)
+	if ok {
+		l.V = l.V[1:]
+	}
 	return id, hd, ok
 }
 
@@ -174,13 +183,44 @@ func (l *List) PopVec() (*Vec, Expr, bool) {
 		return nil, nil, false
 	}
 	hd := l.V[0]
-	l.V = l.V[1:]
 	v, ok := hd.(*Vec)
+	if ok {
+		l.V = l.V[1:]
+	}
 	return v, hd, ok
 }
 
 func (l *List) Append(e Expr) {
 	l.V = append(l.V, e)
+}
+
+type DotList struct {
+	V []Expr
+	P tk.Position
+}
+
+func (DotList) Expr() {}
+
+func (dl DotList) String() string {
+	var s strings.Builder
+	s.WriteByte('(')
+	for i, e := range dl.V {
+		if i > 0 {
+			s.WriteByte(' ')
+		}
+		s.WriteString(e.String())
+	}
+	s.WriteByte('.')
+	s.WriteByte(')')
+	return s.String()
+}
+
+func (dl DotList) Pos() tk.Position {
+	return dl.P
+}
+
+func (dl *DotList) Append(e Expr) {
+	dl.V = append(dl.V, e)
 }
 
 type Vec struct {
@@ -261,6 +301,28 @@ func (f Fn) String() string {
 }
 
 func (f Fn) Pos() tk.Position {
+	return f.P
+}
+
+type AnonymousFn struct {
+	Params *Vec
+	Body   Expr
+	P      tk.Position
+}
+
+func (AnonymousFn) Expr() {}
+
+func (f AnonymousFn) String() string {
+	var s strings.Builder
+	s.WriteString("(fn ")
+	s.WriteString(f.Params.String())
+	s.WriteString(" ")
+	s.WriteString(f.Body.String())
+	s.WriteByte(')')
+	return s.String()
+}
+
+func (f AnonymousFn) Pos() tk.Position {
 	return f.P
 }
 

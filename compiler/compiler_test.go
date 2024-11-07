@@ -62,10 +62,6 @@ func TestCompiler(t *testing.T) {
 		{input: "(* 1 1 1)", output: "(1 * 1 * 1)"},
 		{input: "(/ 1 1 1)", output: "(1 / 1 / 1)"},
 		{
-			input:  "(1 2 3 4)",
-			output: "(1 2 3 4)",
-		},
-		{
 			input:  "[1 2 3 4]",
 			output: "[1 2 3 4]",
 		},
