@@ -98,10 +98,9 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 		return c.compileBinaryOperation(e, op)
 	}
 	if _, ok := e.V[0].(ex.Identifier); ok {
-		c.setState(state.NO_SEMICOLON)
-		defer c.restoreState()
 		s.WriteString(fixName(hd))
 		s.WriteByte('(')
+		c.setState(state.NO_SEMICOLON)
 		rest := e.V[1:]
 		for i, expr := range rest {
 			code, err := c.compile(expr)
@@ -113,7 +112,12 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 				s.WriteString(", ")
 			}
 		}
-		s.WriteByte(')')
+		c.restoreState()
+		if c.state == state.NO_SEMICOLON {
+			s.WriteByte(')')
+		} else {
+			s.WriteString(");")
+		}
 		return s.String(), nil
 	} else {
 		s.WriteByte('[')
@@ -135,6 +139,8 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 
 func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
 	var s strings.Builder
+	c.setState(state.NO_SEMICOLON)
+	defer c.restoreState()
 	for i, expr := range e.V {
 		code, err := c.compile(expr)
 		if err != nil {
@@ -149,6 +155,8 @@ func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
 }
 
 func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, error) {
+	c.setState(state.NO_SEMICOLON)
+	defer c.restoreState()
 	opstr := op.String()
 	if opstr == "=" {
 		opstr = "=="
