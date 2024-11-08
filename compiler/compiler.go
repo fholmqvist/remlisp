@@ -73,6 +73,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileSet(e)
 	case *ex.Get:
 		return c.compileGet(e)
+	case *ex.Map:
+		return c.compileMap(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -262,6 +264,26 @@ func (c *Compiler) compileGet(e *ex.Get) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s[%s]", fixName(e.Name), code), nil
+}
+
+func (c *Compiler) compileMap(e *ex.Map) (string, error) {
+	var s strings.Builder
+	s.WriteString("({")
+	for i, expr := range e.V {
+		code, err := c.compile(expr)
+		if err != nil {
+			return "", err
+		}
+		s.WriteString(code)
+		if i%2 == 0 {
+			s.WriteByte(':')
+		}
+		if i < len(e.V)-1 {
+			s.WriteByte(' ')
+		}
+	}
+	s.WriteString("})")
+	return s.String(), nil
 }
 
 func (c *Compiler) compileVec(e *ex.Vec) (string, error) {
