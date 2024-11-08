@@ -71,6 +71,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileVar(e)
 	case *ex.Set:
 		return c.compileSet(e)
+	case *ex.Get:
+		return c.compileGet(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -252,6 +254,14 @@ func (c *Compiler) compileSet(e *ex.Set) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s = %s", fixName(e.Name), code), nil
+}
+
+func (c *Compiler) compileGet(e *ex.Get) (string, error) {
+	code, err := c.compile(e.E)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s[%s]", fixName(e.Name), code), nil
 }
 
 func (c *Compiler) compileVec(e *ex.Vec) (string, error) {

@@ -12,7 +12,9 @@ func Run() {
 	if err := createFile("out.js", fmt.Sprintf("%s\n\n%s", stdlib, code)); err != nil {
 		exit("creating output file", err)
 	}
-	if err := exec.Command("deno", "run", "outjs").Run(); err != nil {
+	bb, err := exec.Command("deno", "run", "out.js").Output()
+	if err != nil {
 		exit("deno", err)
 	}
+	fmt.Println(string(bb))
 }

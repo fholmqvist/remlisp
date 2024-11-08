@@ -447,6 +447,28 @@ func (s Set) Pos() tk.Position {
 	return s.P
 }
 
+type Get struct {
+	Name string
+	E    Expr
+	P    tk.Position
+}
+
+func (Get) Expr() {}
+
+func (g Get) String() string {
+	var st strings.Builder
+	st.WriteString("(get ")
+	st.WriteString(g.Name)
+	st.WriteString(" ")
+	st.WriteString(g.E.String())
+	st.WriteByte(')')
+	return st.String()
+}
+
+func (g Get) Pos() tk.Position {
+	return g.P
+}
+
 /*
 	nil
 	quote

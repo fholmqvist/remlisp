@@ -2,4 +2,4 @@ cover.*
 *.prof
 
 input.rem
-out/
+out.js

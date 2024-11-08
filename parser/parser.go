@@ -152,6 +152,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseVar(list)
 	case "set":
 		return p.parseSet(list)
+	case "get":
+		return p.parseGet(list)
 	case ".":
 		return p.parseDotList(list)
 	default:
@@ -265,6 +267,26 @@ func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
 		return nil, p.errLastTokenType("expected value", expr)
 	}
 	return &ex.Set{
+		Name: name.V,
+		E:    expr,
+		P:    list.P,
+	}, nil
+}
+
+func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
+	get, actual, ok := list.PopIdentifier()
+	if !ok || get.String() != "get" {
+		return nil, p.errLastTokenType("expected get", actual)
+	}
+	name, actual, ok := list.PopIdentifier()
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", actual)
+	}
+	expr := list.Pop()
+	if expr == nil {
+		return nil, p.errLastTokenType("expected value", expr)
+	}
+	return &ex.Get{
 		Name: name.V,
 		E:    expr,
 		P:    list.P,
