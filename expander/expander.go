@@ -189,23 +189,47 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	for i := range m.Params.V {
 		args[m.Params.V[i].String()] = list.V[i+1]
 	}
-	bls, ok := m.Body.(*ex.List)
-	if !ok {
-		return nil, &er.Error{
-			Msg:   fmt.Sprintf("expected list, got %T", m.Body),
-			Start: pos.Start,
-			End:   pos.End,
-		}
-	}
-	nbody := *bls
-	for i, ex := range nbody.V {
-		arg, ok := args[ex.String()]
+	switch body := m.Body.(type) {
+	case *ex.List:
+		return e.replaceArguments(body, args, false), nil
+	case *ex.Quasiquote:
+		nbody, ok := body.E.(*ex.List)
 		if !ok {
-			continue
+			return body.E, nil
 		}
-		nbody.V[i] = arg
+		return e.replaceArguments(nbody, args, true), nil
+	case *ex.Quote:
+		return body, nil
+	default:
+		return body, nil
 	}
-	return &nbody, nil
+}
+
+func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr, quasi bool) *ex.List {
+	// Remove reference semantics.
+	nlist := ex.List{V: append([]ex.Expr{}, list.V...)}
+	for i, expr := range nlist.V {
+		switch expr := expr.(type) {
+		case *ex.List:
+			nlist.V[i] = e.replaceArguments(expr, args, quasi)
+		default:
+			if quasi {
+				// Strip unquote.
+				arg, ok := args[expr.String()[1:]]
+				if !ok {
+					continue
+				}
+				nlist.V[i] = arg
+			} else {
+				arg, ok := args[expr.String()]
+				if !ok {
+					continue
+				}
+				nlist.V[i] = arg
+			}
+		}
+	}
+	return &nlist
 }
 
 func (e *Expander) predeclareMacros() {

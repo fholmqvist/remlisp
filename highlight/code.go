@@ -113,7 +113,8 @@ func code(str string, errorColor bool) string {
 func isPurple(s string) bool {
 	s = strings.TrimSpace(s)
 	switch s {
-	case "fn", "if", "cond", "case", "match", "while", "break", "continue", "var":
+	case "fn", "if", "cond", "case", "match", "while", "break", "continue", "var",
+		"set", "get", "macro":
 		return true
 	default:
 		return false

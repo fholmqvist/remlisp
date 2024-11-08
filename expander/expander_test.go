@@ -30,6 +30,10 @@ func TestExpander(t *testing.T) {
 			input:  "`,(+ 1 1)",
 			output: "2",
 		},
+		{
+			input:  "(macro inc [n] `(+ ,n 1)) (var x 0) (inc x)",
+			output: "(macro inc [n] `(+ ,n 1)) (var x 0) (+ x 1)",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
@@ -59,8 +63,11 @@ func getCode(t *testing.T, input string) string {
 		t.Fatal(erre)
 	}
 	var s strings.Builder
-	for _, expr := range exprs {
+	for i, expr := range exprs {
 		s.WriteString(expr.String())
+		if i < len(exprs)-1 {
+			s.WriteByte(' ')
+		}
 	}
 	return s.String()
 }
