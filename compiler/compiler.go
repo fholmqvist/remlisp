@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fholmqvist/remlisp/compiler/state"
 	ex "github.com/fholmqvist/remlisp/expr"
 	"github.com/fholmqvist/remlisp/token/operator"
 )
@@ -11,6 +12,9 @@ import (
 type Compiler struct {
 	exprs []ex.Expr
 	i     int
+
+	state    state.State
+	oldstate state.State
 }
 
 func New(exprs []ex.Expr) (*Compiler, error) {
@@ -18,8 +22,10 @@ func New(exprs []ex.Expr) (*Compiler, error) {
 		return nil, fmt.Errorf("empty expressions")
 	}
 	return &Compiler{
-		exprs: exprs,
-		i:     0,
+		exprs:    exprs,
+		i:        0,
+		state:    state.NORMAL,
+		oldstate: state.NORMAL,
 	}, nil
 }
 
@@ -229,6 +235,8 @@ func (c *Compiler) compileIf(e *ex.If) (string, error) {
 }
 
 func (c *Compiler) compileDo(e *ex.Do) (string, error) {
+	c.setState(state.NO_SEMICOLON)
+	defer c.restoreState()
 	var s strings.Builder
 	s.WriteString("(() => { ")
 	for i, expr := range e.V {
@@ -247,7 +255,16 @@ func (c *Compiler) compileDo(e *ex.Do) (string, error) {
 }
 
 func (c *Compiler) compileVar(e *ex.Var) (string, error) {
-	return fmt.Sprintf("let %s = %s", fixName(e.Name), e.V), nil
+	name := fixName(e.Name)
+	v, err := c.compile(e.V)
+	if err != nil {
+		return "", err
+	}
+	if c.state == state.NO_SEMICOLON {
+		return fmt.Sprintf("let %s = %s", name, v), nil
+	} else {
+		return fmt.Sprintf("let %s = %s;", name, v), nil
+	}
 }
 
 func (c *Compiler) compileSet(e *ex.Set) (string, error) {
@@ -255,7 +272,7 @@ func (c *Compiler) compileSet(e *ex.Set) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s = %s", fixName(e.Name), code), nil
+	return fmt.Sprintf("%s = %s;", fixName(e.Name), code), nil
 }
 
 func (c *Compiler) compileGet(e *ex.Get) (string, error) {
@@ -313,6 +330,15 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("...%s", arg), nil
+}
+
+func (c *Compiler) setState(s state.State) {
+	c.oldstate = c.state
+	c.state = s
+}
+
+func (c *Compiler) restoreState() {
+	c.state = c.oldstate
 }
 
 func fixName(s string) string {
