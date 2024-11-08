@@ -76,6 +76,10 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseDot(t)
 	case tk.Quote:
 		return p.parseQuote(t)
+	case tk.Quasiquote:
+		return p.parseQuasiquote(t)
+	case tk.Comma:
+		return p.parseUnquote(t)
 	default:
 		return nil, p.errLastTokenType("unexpected token", next)
 	}
@@ -387,14 +391,36 @@ func (p *Parser) parseDot(dot tk.Dot) (ex.Identifier, *e.Error) {
 	}, nil
 }
 
-func (p *Parser) parseQuote(quote tk.Quote) (ex.Expr, *e.Error) {
+func (p *Parser) parseQuote(q tk.Quote) (ex.Expr, *e.Error) {
 	expr, err := p.parseExpr()
 	if err != nil {
 		return nil, err
 	}
 	return &ex.Quote{
 		E: expr,
-		P: tk.Between(quote.Pos(), expr.Pos()),
+		P: tk.Between(q.Pos(), expr.Pos()),
+	}, nil
+}
+
+func (p *Parser) parseQuasiquote(q tk.Quasiquote) (ex.Expr, *e.Error) {
+	expr, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	return &ex.Quasiquote{
+		E: expr,
+		P: tk.Between(q.Pos(), expr.Pos()),
+	}, nil
+}
+
+func (p *Parser) parseUnquote(c tk.Comma) (ex.Expr, *e.Error) {
+	expr, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	return &ex.Unquote{
+		E: expr,
+		P: tk.Between(c.Pos(), expr.Pos()),
 	}, nil
 }
 

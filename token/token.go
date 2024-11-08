@@ -278,3 +278,17 @@ func (c Quote) String() string {
 func (c Quote) Pos() Position {
 	return c.P
 }
+
+type Quasiquote struct {
+	P Position
+}
+
+func (Quasiquote) Token() {}
+
+func (c Quasiquote) String() string {
+	return "`"
+}
+
+func (c Quasiquote) Pos() Position {
+	return c.P
+}

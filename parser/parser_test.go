@@ -126,6 +126,14 @@ func TestParse(t *testing.T) {
 			output: "'(set x 2)",
 		},
 		{
+			input:  "`(set x 2)",
+			output: "`(set x 2)",
+		},
+		{
+			input:  ",1",
+			output: ",1",
+		},
+		{
 			input:  "(macro inc [n] (+ n 1))",
 			output: "(macro inc [n] (+ n 1))",
 		},

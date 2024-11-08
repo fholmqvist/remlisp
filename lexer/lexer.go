@@ -101,6 +101,9 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	case isQuote(l.ch):
 		l.step()
 		return tk.Quote{P: l.Pos()}, nil
+	case isQuasiquote(l.ch):
+		l.step()
+		return tk.Quasiquote{P: l.Pos()}, nil
 	default:
 		pos := l.Pos()
 		return nil, e.FromPosition(pos, fmt.Sprintf("%s %s: %q",
@@ -343,6 +346,10 @@ func isAmpersand(b byte) bool {
 
 func isQuote(b byte) bool {
 	return b == '\''
+}
+
+func isQuasiquote(b byte) bool {
+	return b == '`'
 }
 
 func isDelimiter(b byte) bool {

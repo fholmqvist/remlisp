@@ -533,3 +533,39 @@ func (m Macro) String() string {
 func (m Macro) Pos() tk.Position {
 	return m.P
 }
+
+type Quasiquote struct {
+	E Expr
+	P tk.Position
+}
+
+func (Quasiquote) Expr() {}
+
+func (q Quasiquote) String() string {
+	var st strings.Builder
+	st.WriteString("`")
+	st.WriteString(q.E.String())
+	return st.String()
+}
+
+func (q Quasiquote) Pos() tk.Position {
+	return q.P
+}
+
+type Unquote struct {
+	E Expr
+	P tk.Position
+}
+
+func (Unquote) Expr() {}
+
+func (u Unquote) String() string {
+	var st strings.Builder
+	st.WriteString(",")
+	st.WriteString(u.E.String())
+	return st.String()
+}
+
+func (u Unquote) Pos() tk.Position {
+	return u.P
+}
