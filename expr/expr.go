@@ -510,6 +510,27 @@ func (q Quote) Pos() tk.Position {
 	return q.P
 }
 
-/*
-	macro
-*/
+type Macro struct {
+	Name   string
+	Params *Vec
+	Body   Expr
+	P      tk.Position
+}
+
+func (Macro) Expr() {}
+
+func (m Macro) String() string {
+	var st strings.Builder
+	st.WriteString("(macro ")
+	st.WriteString(m.Name)
+	st.WriteString(" ")
+	st.WriteString(m.Params.String())
+	st.WriteString(" ")
+	st.WriteString(m.Body.String())
+	st.WriteByte(')')
+	return st.String()
+}
+
+func (m Macro) Pos() tk.Position {
+	return m.P
+}

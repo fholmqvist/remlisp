@@ -1,9 +1,11 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/fholmqvist/remlisp/compiler"
+	"github.com/fholmqvist/remlisp/expander"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
 )
@@ -35,6 +37,13 @@ func compileFile(path string, print bool) string {
 	if print {
 		prettyPrintExprs(exprs)
 	}
+	expander := expander.New(exprs)
+	printExpanderHeader()
+	exprs, erre = expander.Expand()
+	if erre != nil {
+		exite("expansion error", bb, erre)
+	}
+	fmt.Println()
 	comp, err := compiler.New(exprs)
 	if err != nil {
 		exit("error instantiating compiler", err)

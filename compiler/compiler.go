@@ -85,6 +85,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileMap(e)
 	case *ex.Quote:
 		return c.compileQuote(e)
+	case *ex.Macro:
+		return c.compileMacro(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -362,4 +364,9 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 
 func (c *Compiler) compileQuote(q *ex.Quote) (string, error) {
 	return fmt.Sprintf("%q", q.E), nil
+}
+
+func (c *Compiler) compileMacro(m *ex.Macro) (string, error) {
+	lines := strings.Split(m.String(), "\n")
+	return fmt.Sprintf("// %s\n\n", strings.Join(lines, "\n// ")), nil
 }

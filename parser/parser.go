@@ -160,6 +160,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseGet(list)
 	case ".":
 		return p.parseDotList(list)
+	case "macro":
+		return p.parseMacro(list)
 	default:
 		return list, nil
 	}
@@ -393,6 +395,31 @@ func (p *Parser) parseQuote(quote tk.Quote) (ex.Expr, *e.Error) {
 	return &ex.Quote{
 		E: expr,
 		P: tk.Between(quote.Pos(), expr.Pos()),
+	}, nil
+}
+
+func (p *Parser) parseMacro(list *ex.List) (ex.Expr, *e.Error) {
+	m := list.Pop()
+	if m == nil || m.String() != "macro" {
+		return nil, p.errLastTokenType("expected macro", m)
+	}
+	name, actual, ok := list.PopIdentifier()
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", actual)
+	}
+	params, actual, ok := list.PopVec()
+	if !ok {
+		return nil, p.errLastTokenType("expected parameters", actual)
+	}
+	body := list.Pop()
+	if body == nil {
+		return nil, p.errLastTokenType("expected body", body)
+	}
+	return &ex.Macro{
+		Name:   name.V,
+		Params: params,
+		Body:   body,
+		P:      tk.Between(m.Pos().BumpLeft(), body.Pos().BumpRight()),
 	}, nil
 }
 

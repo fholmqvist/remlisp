@@ -52,6 +52,10 @@ func prettyPrintExprs(exprs []ex.Expr) {
 	printLine()
 }
 
+func printExpanderHeader() {
+	fmt.Printf("%s\n", h.Bold("EXPANDER ==========="))
+}
+
 func prettyPrintCode(code string) {
 	fmt.Printf("%s\n", h.Bold("CODE ==============="))
 	if len(code) > 0 {
