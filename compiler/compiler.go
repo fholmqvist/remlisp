@@ -65,6 +65,10 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileIf(e)
 	case *ex.Do:
 		return c.compileDo(e)
+	case *ex.Var:
+		return c.compileVar(e)
+	case *ex.Set:
+		return c.compileSet(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -212,6 +216,18 @@ func (c *Compiler) compileDo(e *ex.Do) (string, error) {
 	}
 	s.WriteString("})()")
 	return s.String(), nil
+}
+
+func (c *Compiler) compileVar(e *ex.Var) (string, error) {
+	return fmt.Sprintf("let %s = %s", fixName(e.Name), e.V), nil
+}
+
+func (c *Compiler) compileSet(e *ex.Set) (string, error) {
+	code, err := c.compile(e.E)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s = %s", fixName(e.Name), code), nil
 }
 
 func (c *Compiler) compileVec(e *ex.Vec) (string, error) {

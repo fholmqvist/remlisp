@@ -142,6 +142,10 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseIf(list)
 	case "do":
 		return p.parseDo(list)
+	case "var":
+		return p.parseVar(list)
+	case "set":
+		return p.parseSet(list)
 	case ".":
 		return p.parseDotList(list)
 	default:
@@ -152,7 +156,7 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 	var anonymous bool
 	fn := list.Pop()
-	if fn == nil {
+	if fn == nil || fn.String() != "fn" {
 		return nil, p.errLastTokenType("expected function", fn)
 	}
 	name, actual, ok := list.PopIdentifier()
@@ -189,7 +193,7 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 	iff := list.Pop()
-	if iff == nil {
+	if iff == nil || iff.String() != "if" {
 		return nil, p.errLastTokenType("expected if", iff)
 	}
 	cond := list.Pop()
@@ -219,6 +223,46 @@ func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
 		return nil, p.errExpr(list, "expected body for do", nil)
 	}
 	return &ex.Do{V: list.V[1:], P: list.P}, nil
+}
+
+func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
+	varr, actual, ok := list.PopIdentifier()
+	if !ok || varr.String() != "var" {
+		return nil, p.errLastTokenType("expected var", actual)
+	}
+	name, actual, ok := list.PopIdentifier()
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", actual)
+	}
+	value := list.Pop()
+	if value == nil {
+		return nil, p.errLastTokenType("expected value", value)
+	}
+	return &ex.Var{
+		Name: name.V,
+		V:    value,
+		P:    list.P,
+	}, nil
+}
+
+func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
+	set, actual, ok := list.PopIdentifier()
+	if !ok || set.String() != "set" {
+		return nil, p.errLastTokenType("expected set", actual)
+	}
+	name, actual, ok := list.PopIdentifier()
+	if !ok {
+		return nil, p.errLastTokenType("expected identifier", actual)
+	}
+	expr := list.Pop()
+	if expr == nil {
+		return nil, p.errLastTokenType("expected value", expr)
+	}
+	return &ex.Set{
+		Name: name.V,
+		E:    expr,
+		P:    list.P,
+	}, nil
 }
 
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {

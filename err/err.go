@@ -29,7 +29,9 @@ func (e Error) String(input []byte) string {
 			endInner    strings.Builder
 		)
 		for i < e.Start {
-			startInner.WriteByte(b)
+			if b != '\n' {
+				startInner.WriteByte(b)
+			}
 			i++
 			b = input[i]
 			if b == '\n' {
@@ -39,15 +41,10 @@ func (e Error) String(input []byte) string {
 				row++
 			}
 		}
-		// Last row of error is always next
-		// line whether it exists or not.
-		//
-		// 1 | ...
-		// 2 | ...
-		//
-		startRow := row
 		for i < e.End {
-			middleInner.WriteByte(b)
+			if b != '\n' {
+				middleInner.WriteByte(b)
+			}
 			i++
 			b = input[i]
 			if i >= e.End {
@@ -63,25 +60,18 @@ func (e Error) String(input []byte) string {
 			}
 		}
 		for i < len(input)-1 {
-			endInner.WriteByte(b)
+			if b != '\n' {
+				endInner.WriteByte(b)
+			}
 			i++
 			b = input[i]
 			if b == '\n' {
 				end.WriteString(h.Code(endInner.String()))
 				endInner.Reset()
 				row++
+				end.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
 			}
 		}
-		// Ensure that we don't get two
-		// lines with the same row number:
-		//
-		// 1 | ...
-		// 1 | ...
-		//
-		if row == startRow {
-			row++
-		}
-		end.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
 	}
 	var errline strings.Builder
 	errline.WriteString(start.String())

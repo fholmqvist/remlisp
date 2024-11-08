@@ -389,6 +389,50 @@ func (d Do) Pos() tk.Position {
 	return d.P
 }
 
+type Var struct {
+	Name string
+	V    Expr
+	P    tk.Position
+}
+
+func (Var) Expr() {}
+
+func (v Var) String() string {
+	var s strings.Builder
+	s.WriteString("(var ")
+	s.WriteString(v.Name)
+	s.WriteString(" ")
+	s.WriteString(v.V.String())
+	s.WriteByte(')')
+	return s.String()
+}
+
+func (v Var) Pos() tk.Position {
+	return v.P
+}
+
+type Set struct {
+	Name string
+	E    Expr
+	P    tk.Position
+}
+
+func (Set) Expr() {}
+
+func (s Set) String() string {
+	var st strings.Builder
+	st.WriteString("(set ")
+	st.WriteString(s.Name)
+	st.WriteString(" ")
+	st.WriteString(s.E.String())
+	st.WriteByte(')')
+	return st.String()
+}
+
+func (s Set) Pos() tk.Position {
+	return s.P
+}
+
 /*
 	nil
 	quote
