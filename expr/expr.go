@@ -500,9 +500,8 @@ func (Quote) Expr() {}
 
 func (q Quote) String() string {
 	var st strings.Builder
-	st.WriteString("(quote ")
+	st.WriteByte('\'')
 	st.WriteString(q.E.String())
-	st.WriteByte(')')
 	return st.String()
 }
 

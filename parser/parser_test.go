@@ -70,6 +70,10 @@ func TestParse(t *testing.T) {
 		{input: ">", output: ">"},
 		{input: ">=", output: ">="},
 		{
+			input:  "()",
+			output: "()",
+		},
+		{
 			input:  "(1 2 3 4)",
 			output: "(1 2 3 4)",
 		},
@@ -116,6 +120,14 @@ func TestParse(t *testing.T) {
 		{
 			input:  "(while (< 1 2) (println \"infinite loop!\"))",
 			output: "(while (< 1 2) (println \"infinite loop!\"))",
+		},
+		{
+			input:  "'(set x 2)",
+			output: "'(set x 2)",
+		},
+		{
+			input:  "(macro inc [n] (+ n 1))",
+			output: "(macro inc [n] (+ n 1))",
 		},
 	}
 	for _, tt := range tests {
