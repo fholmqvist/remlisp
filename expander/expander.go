@@ -60,6 +60,8 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 	switch expr := expr.(type) {
 	case *ex.List:
 		return e.expandCall(expr)
+	case *ex.Quote:
+		return expr.E, nil
 	}
 	return expr, nil
 }

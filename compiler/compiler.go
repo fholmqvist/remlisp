@@ -83,8 +83,6 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileGet(e)
 	case *ex.Map:
 		return c.compileMap(e)
-	case *ex.Quote:
-		return c.compileQuote(e)
 	case *ex.Macro:
 		return c.compileMacro(e)
 	default:
@@ -360,10 +358,6 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("...%s", arg), nil
-}
-
-func (c *Compiler) compileQuote(q *ex.Quote) (string, error) {
-	return fmt.Sprintf("%q", q.E), nil
 }
 
 func (c *Compiler) compileMacro(m *ex.Macro) (string, error) {
