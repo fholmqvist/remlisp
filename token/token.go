@@ -8,18 +8,6 @@ type Token interface {
 	Pos() Position
 }
 
-type EOF struct{}
-
-func (EOF) Token() {}
-
-func (e EOF) String() string {
-	return "EOF"
-}
-
-func (e EOF) Pos() Position {
-	return Position{}
-}
-
 type Nil struct {
 	P Position
 }

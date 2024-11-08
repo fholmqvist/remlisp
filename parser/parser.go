@@ -171,9 +171,6 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 	var anonymous bool
 	fn := list.Pop()
-	if fn == nil || fn.String() != "fn" {
-		return nil, p.errLastTokenType("expected function", fn)
-	}
 	name, actual, ok := list.PopIdentifier()
 	if !ok {
 		if _, ok := actual.(*ex.Vec); ok {
@@ -208,9 +205,6 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 	iff := list.Pop()
-	if iff == nil || iff.String() != "if" {
-		return nil, p.errLastTokenType("expected if", iff)
-	}
 	cond := list.Pop()
 	if cond == nil {
 		return nil, p.errLastTokenType("expected condition", cond)
@@ -227,12 +221,13 @@ func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 		Cond: cond,
 		Then: then,
 		Else: els,
+		P:    tk.Between(iff.Pos().BumpLeft(), els.Pos().BumpRight()),
 	}, nil
 }
 
 func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
 	while := list.Pop()
-	if while == nil || while.String() != "while" {
+	if while == nil {
 		return nil, p.errLastTokenType("expected while", while)
 	}
 	cond := list.Pop()
@@ -246,6 +241,7 @@ func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
 	return &ex.While{
 		Cond: cond,
 		Body: body,
+		P:    tk.Between(while.Pos().BumpLeft(), body.Pos().BumpRight()),
 	}, nil
 }
 
@@ -260,8 +256,8 @@ func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
-	varr, actual, ok := list.PopIdentifier()
-	if !ok || varr.String() != "var" {
+	_, actual, ok := list.PopIdentifier()
+	if !ok {
 		return nil, p.errLastTokenType("expected var", actual)
 	}
 	name, actual, ok := list.PopIdentifier()
@@ -280,8 +276,8 @@ func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
-	set, actual, ok := list.PopIdentifier()
-	if !ok || set.String() != "set" {
+	_, actual, ok := list.PopIdentifier()
+	if !ok {
 		return nil, p.errLastTokenType("expected set", actual)
 	}
 	name, actual, ok := list.PopIdentifier()
@@ -423,7 +419,7 @@ func (p *Parser) parseUnquote(c tk.Comma) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseMacro(list *ex.List) (ex.Expr, *e.Error) {
 	m := list.Pop()
-	if m == nil || m.String() != "macro" {
+	if m == nil {
 		return nil, p.errLastTokenType("expected macro", m)
 	}
 	name, actual, ok := list.PopIdentifier()
@@ -461,7 +457,7 @@ func (p *Parser) is(t tk.Token) bool {
 
 func (p *Parser) eat(t tk.Token) *e.Error {
 	if !p.inRange() {
-		return e.FromToken(t, "unexpected end of input")
+		return e.FromToken(p.tokens[p.i-1], "unexpected end of input")
 	}
 	if fmt.Sprintf("%T", p.tokens[p.i]) != fmt.Sprintf("%T", t) {
 		return e.FromToken(t, fmt.Sprintf("expected %q, got %q", t, p.tokens[p.i]))

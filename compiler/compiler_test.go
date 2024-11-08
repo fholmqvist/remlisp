@@ -62,11 +62,26 @@ func TestCompiler(t *testing.T) {
 			input:  ":a",
 			output: "\":a\"",
 		},
-		{input: "(+ 1 1 1)", output: "(1 + 1 + 1)"},
-		{input: "(- 1 1 1)", output: "(1 - 1 - 1)"},
-		{input: "(* 1 1 1)", output: "(1 * 1 * 1)"},
-		{input: "(/ 1 1 1)", output: "(1 / 1 / 1)"},
-		{input: "(add 1 1)", output: "add(1, 1)"},
+		{
+			input:  "(+ 1 1 1)",
+			output: "(1 + 1 + 1)",
+		},
+		{
+			input:  "(- 1 1 1)",
+			output: "(1 - 1 - 1)",
+		},
+		{
+			input:  "(* 1 1 1)",
+			output: "(1 * 1 * 1)",
+		},
+		{
+			input:  "(/ 1 1 1)",
+			output: "(1 / 1 / 1)",
+		},
+		{
+			input:  "(add 1 1)",
+			output: "add(1, 1);",
+		},
 		{
 			input:  "(1 2 3 4)",
 			output: "[1, 2, 3, 4]",
@@ -113,7 +128,7 @@ func TestCompiler(t *testing.T) {
 		},
 		{
 			input:  "(while (< 1 2) (println \"infinite loop!\"))",
-			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\") } })()",
+			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\"); } })()",
 		},
 		{
 			input:  "(macro inc [n] (+ n 1))",

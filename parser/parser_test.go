@@ -63,12 +63,30 @@ func TestParse(t *testing.T) {
 			input:  ":a",
 			output: ":a",
 		},
-		{input: "%", output: "%"},
-		{input: "=", output: "="},
-		{input: "!=", output: "!="},
-		{input: "<=", output: "<="},
-		{input: ">", output: ">"},
-		{input: ">=", output: ">="},
+		{
+			input:  "%",
+			output: "%",
+		},
+		{
+			input:  "=",
+			output: "=",
+		},
+		{
+			input:  "!=",
+			output: "!=",
+		},
+		{
+			input:  "<=",
+			output: "<=",
+		},
+		{
+			input:  ">",
+			output: ">",
+		},
+		{
+			input:  ">=",
+			output: ">=",
+		},
 		{
 			input:  "()",
 			output: "()",
@@ -167,6 +185,54 @@ func TestError(t *testing.T) {
 				Start: 0,
 				End:   1,
 				Msg:   "unexpected token",
+			},
+		},
+		{
+			input: "(",
+			output: &e.Error{
+				Start: 0,
+				End:   1,
+				Msg:   "unexpected end of input",
+			},
+		},
+		{
+			input: "(1",
+			output: &e.Error{
+				Start: 1,
+				End:   2,
+				Msg:   "unexpected end of input",
+			},
+		},
+		{
+			input: "(fn)",
+			output: &e.Error{
+				Start: 3,
+				End:   4,
+				Msg:   "expected identifier",
+			},
+		},
+		{
+			input: "(fn add)",
+			output: &e.Error{
+				Start: 7,
+				End:   8,
+				Msg:   "expected parameters",
+			},
+		},
+		{
+			input: "(fn add add)",
+			output: &e.Error{
+				Start: 11,
+				End:   12,
+				Msg:   "expected parameters",
+			},
+		},
+		{
+			input: "(fn add [])",
+			output: &e.Error{
+				Start: 10,
+				End:   11,
+				Msg:   "expected body",
 			},
 		},
 	}

@@ -124,27 +124,15 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 		//       demonstrate that this actually works.
 		js, err := e.com.Compile([]ex.Expr{expr.E})
 		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to compile unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.P.End,
-			}
+			return nil, errFromStr("failed to compile unquote: %s", err.Error())
 		}
 		bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
 		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to execute unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.P.End,
-			}
+			return nil, errFromStr("failed to execute unquote: %s", err.Error())
 		}
 		lisp, err := pp.FromJS(bb)
 		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to parse unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.Pos().End,
-			}
+			return nil, errFromStr("failed to parse unquote: %s", err.Error())
 		}
 		tokens, erre := e.lex.Lex([]byte(lisp))
 		if erre != nil {
@@ -155,11 +143,7 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 			return nil, erre
 		}
 		if len(exprs) != 1 {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("expected 1 expression, got %d", len(exprs)),
-				Start: expr.P.Start,
-				End:   expr.Pos().End,
-			}
+			return nil, errFromStr("expected 1 expression, got %d", len(exprs))
 		}
 		return exprs[0], nil
 	default:
@@ -253,4 +237,8 @@ func (e *Expander) logMacroExpansion(name string) {
 	line := fmt.Sprintf("%s: %v", h.Bold("Expanded"), name)
 	fmt.Printf("%s | %s\n", h.Gray(num), line)
 	e.printouts++
+}
+
+func errFromStr(format string, args ...any) *er.Error {
+	return &er.Error{Msg: fmt.Sprintf(format, args...)}
 }
