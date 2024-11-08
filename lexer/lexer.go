@@ -147,7 +147,7 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 
 func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 	line := []byte{}
-	for l.inRange() && isIdent(l.ch) && !isDelimiter(l.ch) || isDot(l.ch) || isMinus(l.ch) {
+	for l.inRange() && isIdentBody(l.ch) {
 		line = append(line, l.ch)
 		l.step()
 	}
@@ -249,6 +249,19 @@ func isNewLine(b byte) bool {
 
 func isIdent(b byte) bool {
 	return b == '_' || unicode.IsLetter(rune(b))
+}
+
+func isIdentBody(b byte) bool {
+	return isIdent(b) && !isDelimiter(b) || isDot(b) ||
+		isMinus(b) || isQuestionMark(b) || isExclamationMark(b)
+}
+
+func isQuestionMark(b byte) bool {
+	return b == '?'
+}
+
+func isExclamationMark(b byte) bool {
+	return b == '!'
 }
 
 func isString(b byte) bool {

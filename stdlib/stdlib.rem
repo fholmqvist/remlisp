@@ -1,0 +1,136 @@
+;;; REMLISP STANDARD LIBRARY v0.1.0
+;;;
+;;; MIT License
+;;;
+;;; Copyright (c) 2024 Fredrik Holmqvist
+;;;
+;;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;;; of this software and associated documentation files (the "Software"), to deal
+;;; in the Software without restriction, including without limitation the rights
+;;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;;; copies of the Software, and to permit persons to whom the Software is
+;;; furnished to do so, subject to the following conditions:
+;;;
+;;; The above copyright notice and this permission notice shall be included in all
+;;; copies or substantial portions of the Software.
+;;;
+;;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;;; SOFTWARE.
+
+;;; TODO: This is a work in progress, and should be split by responsibility.
+
+;; ============================================================================
+;; IO
+;; ============================================================================
+
+(fn println [& xs]
+  (do (map xs console.log)
+      (last xs)))
+
+;; ============================================================================
+;; TYPES
+;; ============================================================================
+
+(fn vec? [xs]
+  (Array.isArray xs))
+
+;; ============================================================================
+;; VECTORS
+;; ============================================================================
+
+(fn length [xs]
+  xs.length)
+
+(fn first [xs]
+  (get xs 0))
+
+(fn last [xs]
+  (get xs(- (length xs) 1)))
+
+(fn map [xs f]
+  (xs.map (fn [x] (f x))))
+
+(fn flatmap [xs f]
+  (flatten (map xs f)))
+
+(fn filter [xs f]
+  (xs.filter (fn [x] (f x))))
+
+(fn take-while [xs f]
+  (do (var i 0)
+      (while (f (xs.at i))
+        (set i (+ i 1)))
+      (xs.slice 0 i)))
+
+(fn drop-while [xs f]
+  (do (var i 0)
+      (while (not (f (xs.at i)))
+        (set i (+ i 1)))
+      (xs.slice i (length xs))))
+
+(fn compact [xs]
+  (filter xs (fn [x] (not (nil? x)))))
+
+(fn flatten [xs]
+  (xs.flat))
+
+(fn index [xs x]
+  (xs.indexOf x))
+
+(fn reverse [xs]
+  (xs.reverse))
+
+(fn shuffle [xs]
+  (xs.sort (fn [] (- (Math.random) 0.5))))
+
+(fn unique [xs]
+  (xs.filter (fn [x idx] (= (index xs x) idx))))
+
+(fn range [n]
+  (. (Array n) (fill 1) (map (fn [_ i] i))))
+
+(fn join [xs v]
+  (xs.join v))
+
+;; ============================================================================
+;; STRINGS
+;; ============================================================================
+
+(fn split [str v]
+  (str.split v))
+
+(fn split-many [str & v]
+  (do (var result [str])
+      (v.forEach (fn [v]
+        (set result (flatmap result (fn [s] (split s v))))))
+      (filter result Boolean)))
+
+(fn split-newlines [str]
+  (split str "\n"))
+
+(fn split-spaces [str]
+  (split str " "))
+
+(fn map-string [str f]
+  (join (map (split str "") (fn [x] (f x))) ""))
+
+;; ============================================================================
+;; NUMBERS
+;; ============================================================================
+
+(fn nil? [n]
+  (= n null))
+
+(fn string? [x]
+  (= (typeof x) "string"))
+
+(fn even? [n]
+  (= (% n 2) 0))
+
+(fn odd? [n]
+  (= (% n 2) 1))

@@ -154,6 +154,7 @@ func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
 		return "", err
 	}
 	s.WriteString(body)
+	s.WriteString("\n\n")
 	return s.String(), nil
 }
 
