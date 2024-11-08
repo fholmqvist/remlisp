@@ -133,27 +133,18 @@ func TestCompiler(t *testing.T) {
 
 func getCode(t *testing.T, input string) string {
 	bb := []byte(input)
-	lexer, err := lexer.New(bb)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokens, erre := lexer.Lex()
+	lexer := lexer.New()
+	tokens, erre := lexer.Lex(bb)
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	parser, err := parser.New(tokens)
-	if err != nil {
-		t.Fatal(err)
-	}
-	exprs, erre := parser.Parse()
+	parser := parser.New()
+	exprs, erre := parser.Parse(tokens)
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	comp, err := New(exprs)
-	if err != nil {
-		t.Fatal(err)
-	}
-	code, err := comp.Compile()
+	comp := New()
+	code, err := comp.Compile(exprs)
 	if err != nil {
 		t.Fatal(err)
 	}

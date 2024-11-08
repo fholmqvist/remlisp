@@ -39,12 +39,19 @@ type Expander struct {
 	macros []*ex.Macro
 
 	printouts int
+
+	lex *lexer.Lexer
+	prs *parser.Parser
+	com *compiler.Compiler
 }
 
 func New(exprs []ex.Expr) *Expander {
 	return &Expander{
 		exprs:  exprs,
 		macros: []*ex.Macro{},
+		lex:    lexer.New(),
+		prs:    parser.New(),
+		com:    compiler.New(),
 	}
 }
 
@@ -115,15 +122,7 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 	case *ex.Unquote:
 		// TODO: This is very much a standin hack to
 		//       demonstrate that this actually works.
-		cmp, err := compiler.New([]ex.Expr{expr.E})
-		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to compile unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.P.End,
-			}
-		}
-		js, err := cmp.Compile()
+		js, err := e.com.Compile([]ex.Expr{expr.E})
 		if err != nil {
 			return nil, &er.Error{
 				Msg:   fmt.Sprintf("failed to compile unquote: %s", err.Error()),
@@ -147,27 +146,11 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 				End:   expr.Pos().End,
 			}
 		}
-		lexer, err := lexer.New([]byte(lisp))
-		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to lex unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.Pos().End,
-			}
-		}
-		tokens, erre := lexer.Lex()
+		tokens, erre := e.lex.Lex([]byte(lisp))
 		if erre != nil {
 			return nil, erre
 		}
-		parser, err := parser.New(tokens)
-		if err != nil {
-			return nil, &er.Error{
-				Msg:   fmt.Sprintf("failed to parse unquote: %s", err.Error()),
-				Start: expr.P.Start,
-				End:   expr.Pos().End,
-			}
-		}
-		exprs, erre := parser.Parse()
+		exprs, erre := e.prs.Parse(tokens)
 		if erre != nil {
 			return nil, erre
 		}

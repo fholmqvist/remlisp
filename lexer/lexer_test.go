@@ -96,11 +96,8 @@ func TestLexer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			bb := []byte(tt.input)
-			lexer, err := New(bb)
-			if err != nil {
-				t.Fatal(err)
-			}
-			tokens, erre := lexer.Lex()
+			lexer := New()
+			tokens, erre := lexer.Lex(bb)
 			if erre != nil {
 				t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 			}

@@ -17,18 +17,15 @@ type Parser struct {
 	i int
 }
 
-func New(tokens []tk.Token) (*Parser, error) {
-	if len(tokens) == 0 {
-		return nil, fmt.Errorf("empty tokens")
-	}
+func New() *Parser {
 	return &Parser{
-		tokens: tokens,
-		exprs:  []ex.Expr{},
-		i:      0,
-	}, nil
+		exprs: []ex.Expr{},
+		i:     0,
+	}
 }
 
-func (p *Parser) Parse() ([]ex.Expr, *e.Error) {
+func (p *Parser) Parse(tokens []tk.Token) ([]ex.Expr, *e.Error) {
+	p.tokens = tokens
 	for p.inRange() {
 		expr, err := p.parseExpr()
 		if err != nil {

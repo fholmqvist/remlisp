@@ -18,17 +18,13 @@ type Lexer struct {
 	oldi int
 }
 
-func New(input []byte) (*Lexer, error) {
-	if len(input) == 0 {
-		return nil, fmt.Errorf("empty input")
-	}
-	return &Lexer{
-		input: string(input),
-		ch:    input[0],
-	}, nil
+func New() *Lexer {
+	return &Lexer{}
 }
 
-func (l *Lexer) Lex() ([]tk.Token, *e.Error) {
+func (l *Lexer) Lex(input []byte) ([]tk.Token, *e.Error) {
+	l.input = string(input)
+	l.ch = input[0]
 	tokens := []tk.Token{}
 	for l.inRange() {
 		t, err := l.lex()

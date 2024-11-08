@@ -192,18 +192,12 @@ func errEq(a, b *e.Error) bool {
 
 func getExprs(t *testing.T, input string) ([]expr.Expr, *e.Error) {
 	bb := []byte(input)
-	lexer, err := lexer.New(bb)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokens, erre := lexer.Lex()
+	lexer := lexer.New()
+	tokens, erre := lexer.Lex(bb)
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	parser, err := New(tokens)
-	if err != nil {
-		t.Fatal(err)
-	}
-	exprs, erre := parser.Parse()
+	parser := New()
+	exprs, erre := parser.Parse(tokens)
 	return exprs, erre
 }

@@ -17,19 +17,16 @@ type Compiler struct {
 	oldstate []state.State
 }
 
-func New(exprs []ex.Expr) (*Compiler, error) {
-	if len(exprs) == 0 {
-		return nil, fmt.Errorf("empty expressions")
-	}
+func New() *Compiler {
 	return &Compiler{
-		exprs:    exprs,
 		i:        0,
 		state:    state.NORMAL,
 		oldstate: []state.State{},
-	}, nil
+	}
 }
 
-func (c *Compiler) Compile() (string, error) {
+func (c *Compiler) Compile(exprs []ex.Expr) (string, error) {
+	c.exprs = exprs
 	var s strings.Builder
 	for _, e := range c.exprs {
 		code, err := c.compile(e)
