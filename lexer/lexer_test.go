@@ -52,6 +52,14 @@ func TestLexer(t *testing.T) {
 			output: "example_identifier",
 		},
 		{
+			input:  "true?",
+			output: "true?",
+		},
+		{
+			input:  "send!",
+			output: "send!",
+		},
+		{
 			input:  "\"example_string\"",
 			output: "\"example_string\"",
 		},
@@ -67,6 +75,8 @@ func TestLexer(t *testing.T) {
 		{input: ")", output: ")"},
 		{input: "[", output: "["},
 		{input: "]", output: "]"},
+		{input: "{", output: "{"},
+		{input: "}", output: "}"},
 		{input: " ", output: " "},
 		{input: ",", output: ","},
 		{input: "+", output: "+"},
@@ -74,6 +84,9 @@ func TestLexer(t *testing.T) {
 		{input: "*", output: "*"},
 		{input: "/", output: "/"},
 		{input: "%", output: "%"},
+		{input: "!=", output: "!="},
+		{input: "<=", output: "<="},
+		{input: ">=", output: ">="},
 		{input: " 1", output: "1"},
 		{input: ".", output: "."},
 		{input: "&", output: "&"},

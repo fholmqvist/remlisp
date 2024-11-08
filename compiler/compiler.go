@@ -300,7 +300,7 @@ func (c *Compiler) compileVec(e *ex.Vec) (string, error) {
 		}
 		s.WriteString(code)
 		if i < len(e.V)-1 {
-			s.WriteByte(' ')
+			s.WriteString(", ")
 		}
 	}
 	s.WriteByte(']')

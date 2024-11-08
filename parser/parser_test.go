@@ -109,6 +109,10 @@ func TestParse(t *testing.T) {
 			input:  "(set x 2)",
 			output: "(set x 2)",
 		},
+		{
+			input:  "(get {:a 1} :a)",
+			output: "(get {:a 1} :a)",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
