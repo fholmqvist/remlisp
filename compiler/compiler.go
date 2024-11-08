@@ -51,7 +51,7 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 	case ex.String:
 		return fmt.Sprintf("%q", e.V), nil
 	case ex.Identifier:
-		return e.V, nil
+		return fixName(e.V), nil
 	case ex.Atom:
 		return fmt.Sprintf("%q", e.String()), nil
 	case *ex.List:
