@@ -62,12 +62,15 @@ func TestCompiler(t *testing.T) {
 			input:  ":a",
 			output: "\":a\"",
 		},
-		{input: "(1 1 1)", output: "(1 1 1)"},
 		{input: "(+ 1 1 1)", output: "(1 + 1 + 1)"},
 		{input: "(- 1 1 1)", output: "(1 - 1 - 1)"},
 		{input: "(* 1 1 1)", output: "(1 * 1 * 1)"},
 		{input: "(/ 1 1 1)", output: "(1 / 1 / 1)"},
 		{input: "(add 1 1)", output: "add(1, 1)"},
+		{
+			input:  "(1 2 3 4)",
+			output: "(1, 2, 3, 4)",
+		},
 		{
 			input:  "[1 2 3 4]",
 			output: "[1, 2, 3, 4]",
@@ -94,11 +97,11 @@ func TestCompiler(t *testing.T) {
 		},
 		{
 			input:  "(var x 1)",
-			output: "let x = 1",
+			output: "let x = 1;",
 		},
 		{
 			input:  "(set x 2)",
-			output: "x = 2",
+			output: "x = 2;",
 		},
 		{
 			input:  "(get [1 2] 0)",
@@ -107,6 +110,10 @@ func TestCompiler(t *testing.T) {
 		{
 			input:  "{:a 1}",
 			output: "({\":a\": 1})",
+		},
+		{
+			input:  "(while (< 1 2) (println \"infinite loop!\"))",
+			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\") } })()",
 		},
 	}
 	for _, tt := range tests {

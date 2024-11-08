@@ -98,6 +98,9 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	case isAmpersand(l.ch):
 		l.step()
 		return tk.Ampersand{P: l.Pos()}, nil
+	case isQuote(l.ch):
+		l.step()
+		return tk.Quote{P: l.Pos()}, nil
 	default:
 		pos := l.Pos()
 		return nil, e.FromPosition(pos, fmt.Sprintf("%s %s: %q",
@@ -336,6 +339,10 @@ func isColon(b byte) bool {
 
 func isAmpersand(b byte) bool {
 	return b == '&'
+}
+
+func isQuote(b byte) bool {
+	return b == '\''
 }
 
 func isDelimiter(b byte) bool {

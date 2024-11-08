@@ -264,3 +264,17 @@ func (c Ampersand) String() string {
 func (c Ampersand) Pos() Position {
 	return c.P
 }
+
+type Quote struct {
+	P Position
+}
+
+func (Quote) Token() {}
+
+func (c Quote) String() string {
+	return "'"
+}
+
+func (c Quote) Pos() Position {
+	return c.P
+}

@@ -113,6 +113,10 @@ func TestParse(t *testing.T) {
 			input:  "(get {:a 1} :a)",
 			output: "(get {:a 1} :a)",
 		},
+		{
+			input:  "(while (< 1 2) (println \"infinite loop!\"))",
+			output: "(while (< 1 2) (println \"infinite loop!\"))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

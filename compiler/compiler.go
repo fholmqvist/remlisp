@@ -83,6 +83,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileGet(e)
 	case *ex.Map:
 		return c.compileMap(e)
+	case *ex.Quote:
+		return c.compileQuote(e)
 	default:
 		return "", fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -125,7 +127,7 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 			}
 			s.WriteString(code)
 			if i < len(e.V)-1 {
-				s.WriteByte(' ')
+				s.WriteString(", ")
 			}
 		}
 		s.WriteByte(')')
@@ -358,28 +360,6 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 	return fmt.Sprintf("...%s", arg), nil
 }
 
-var DEBUG_STATE = false
-
-func (c *Compiler) setState(s state.State) {
-	c.oldstate = append(c.oldstate, c.state)
-	if DEBUG_STATE {
-		fmt.Printf("move: %s -> %s | %v\n", c.state, s, c.oldstate)
-	}
-	c.state = s
-}
-
-func (c *Compiler) restoreState() {
-	old := c.oldstate[len(c.oldstate)-1]
-	c.oldstate = c.oldstate[:len(c.oldstate)-1]
-	if DEBUG_STATE {
-		fmt.Printf("back: %s -> %s | %v\n", c.state, old, c.oldstate)
-	}
-	c.state = old
-}
-
-func fixName(s string) string {
-	s = strings.ReplaceAll(s, "-", "_")
-	s = strings.ReplaceAll(s, "?", "P")
-	s = strings.ReplaceAll(s, "!", "Ex")
-	return s
+func (c *Compiler) compileQuote(q *ex.Quote) (string, error) {
+	return fmt.Sprintf("%q", q.E), nil
 }

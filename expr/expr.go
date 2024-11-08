@@ -491,10 +491,25 @@ func (w While) Pos() tk.Position {
 	return w.P
 }
 
+type Quote struct {
+	E Expr
+	P tk.Position
+}
+
+func (Quote) Expr() {}
+
+func (q Quote) String() string {
+	var st strings.Builder
+	st.WriteString("(quote ")
+	st.WriteString(q.E.String())
+	st.WriteByte(')')
+	return st.String()
+}
+
+func (q Quote) Pos() tk.Position {
+	return q.P
+}
+
 /*
-	nil
-	quote
-	while
-	get
 	macro
 */

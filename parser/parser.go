@@ -74,6 +74,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return p.parseVariableArg(t.P)
 	case tk.Dot:
 		return p.parseDot(t)
+	case tk.Quote:
+		return p.parseQuote(t)
 	default:
 		return nil, p.errLastTokenType("unexpected token", next)
 	}
@@ -380,6 +382,17 @@ func (p *Parser) parseDot(dot tk.Dot) (ex.Identifier, *e.Error) {
 	return ex.Identifier{
 		V: ".",
 		P: dot.P,
+	}, nil
+}
+
+func (p *Parser) parseQuote(quote tk.Quote) (ex.Expr, *e.Error) {
+	expr, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	return &ex.Quote{
+		E: expr,
+		P: tk.Between(quote.Pos(), expr.Pos()),
 	}, nil
 }
 
