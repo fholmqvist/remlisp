@@ -289,11 +289,16 @@ func (c *Compiler) compileVar(e *ex.Var) (string, error) {
 }
 
 func (c *Compiler) compileSet(e *ex.Set) (string, error) {
+	name := fixName(e.Name)
 	code, err := c.compile(e.E)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s = %s;", fixName(e.Name), code), nil
+	if c.state == state.NO_SEMICOLON {
+		return fmt.Sprintf("%s = %s", name, code), nil
+	} else {
+		return fmt.Sprintf("%s = %s;", name, code), nil
+	}
 }
 
 func (c *Compiler) compileGet(e *ex.Get) (string, error) {
@@ -353,7 +358,7 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 	return fmt.Sprintf("...%s", arg), nil
 }
 
-var DEBUG_STATE = true
+var DEBUG_STATE = false
 
 func (c *Compiler) setState(s state.State) {
 	c.oldstate = append(c.oldstate, c.state)
