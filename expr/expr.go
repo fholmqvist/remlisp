@@ -448,9 +448,9 @@ func (s Set) Pos() tk.Position {
 }
 
 type Get struct {
-	Name string
-	E    Expr
-	P    tk.Position
+	E Expr
+	I Expr
+	P tk.Position
 }
 
 func (Get) Expr() {}
@@ -458,9 +458,9 @@ func (Get) Expr() {}
 func (g Get) String() string {
 	var st strings.Builder
 	st.WriteString("(get ")
-	st.WriteString(g.Name)
-	st.WriteString(" ")
 	st.WriteString(g.E.String())
+	st.WriteString(" ")
+	st.WriteString(g.I.String())
 	st.WriteByte(')')
 	return st.String()
 }

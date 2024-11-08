@@ -278,18 +278,18 @@ func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
 	if !ok || get.String() != "get" {
 		return nil, p.errLastTokenType("expected get", actual)
 	}
-	name, actual, ok := list.PopIdentifier()
-	if !ok {
-		return nil, p.errLastTokenType("expected identifier", actual)
+	e := list.Pop()
+	if e == nil {
+		return nil, p.errLastTokenType("expected value", e)
 	}
-	expr := list.Pop()
-	if expr == nil {
-		return nil, p.errLastTokenType("expected value", expr)
+	i := list.Pop()
+	if i == nil {
+		return nil, p.errLastTokenType("expected value", i)
 	}
 	return &ex.Get{
-		Name: name.V,
-		E:    expr,
-		P:    list.P,
+		E: e,
+		I: i,
+		P: list.P,
 	}, nil
 }
 

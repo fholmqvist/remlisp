@@ -259,11 +259,15 @@ func (c *Compiler) compileSet(e *ex.Set) (string, error) {
 }
 
 func (c *Compiler) compileGet(e *ex.Get) (string, error) {
-	code, err := c.compile(e.E)
+	ee, err := c.compile(e.E)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s[%s]", fixName(e.Name), code), nil
+	i, err := c.compile(e.I)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s[%s]", ee, i), nil
 }
 
 func (c *Compiler) compileMap(e *ex.Map) (string, error) {
