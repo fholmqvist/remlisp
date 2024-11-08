@@ -86,21 +86,38 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 	if err == nil {
 		return c.compileBinaryOperation(e, op)
 	}
-	s.WriteString(hd)
-	s.WriteByte('(')
-	rest := e.V[1:]
-	for i, expr := range rest {
-		code, err := c.compile(expr)
-		if err != nil {
-			return "", err
+	if _, ok := e.V[0].(ex.Identifier); ok {
+		s.WriteString(fixName(hd))
+		s.WriteByte('(')
+		rest := e.V[1:]
+		for i, expr := range rest {
+			code, err := c.compile(expr)
+			if err != nil {
+				return "", err
+			}
+			s.WriteString(code)
+			if i < len(rest)-1 {
+				s.WriteString(", ")
+			}
 		}
-		s.WriteString(code)
-		if i < len(rest)-1 {
-			s.WriteByte(' ')
+		s.WriteByte(')')
+		return s.String(), nil
+	} else {
+		s.WriteByte('(')
+		for i, expr := range e.V {
+			code, err := c.compile(expr)
+			if err != nil {
+				return "", err
+			}
+			s.WriteString(code)
+			if i < len(e.V)-1 {
+				s.WriteByte(' ')
+			}
 		}
+		s.WriteByte(')')
+		return s.String(), nil
 	}
-	s.WriteByte(')')
-	return s.String(), nil
+
 }
 
 func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
@@ -119,6 +136,10 @@ func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
 }
 
 func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, error) {
+	opstr := op.String()
+	if opstr == "=" {
+		opstr = "=="
+	}
 	var s strings.Builder
 	s.WriteByte('(')
 	for i, expr := range e.V[1:] {
@@ -128,7 +149,7 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 		}
 		s.WriteString(code)
 		if i < len(e.V)-2 {
-			s.WriteString(fmt.Sprintf(" %s ", op.String()))
+			s.WriteString(fmt.Sprintf(" %s ", opstr))
 		}
 	}
 	s.WriteByte(')')
@@ -259,5 +280,8 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 }
 
 func fixName(s string) string {
-	return strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "?", "P")
+	s = strings.ReplaceAll(s, "!", "Ex")
+	return s
 }

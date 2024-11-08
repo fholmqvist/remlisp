@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"strings"
 	"testing"
 
 	h "github.com/fholmqvist/remlisp/highlight"
@@ -61,6 +62,7 @@ func TestCompiler(t *testing.T) {
 		{input: "(- 1 1 1)", output: "(1 - 1 - 1)"},
 		{input: "(* 1 1 1)", output: "(1 * 1 * 1)"},
 		{input: "(/ 1 1 1)", output: "(1 / 1 / 1)"},
+		{input: "(add 1 1)", output: "add(1, 1)"},
 		{
 			input:  "[1 2 3 4]",
 			output: "[1 2 3 4]",
@@ -123,5 +125,5 @@ func getCode(t *testing.T, input string) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return code
+	return strings.TrimSpace(code)
 }

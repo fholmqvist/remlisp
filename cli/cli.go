@@ -1,57 +1,18 @@
 package cli
 
 import (
-	"os"
-
-	"github.com/fholmqvist/remlisp/compiler"
-	"github.com/fholmqvist/remlisp/lexer"
-	"github.com/fholmqvist/remlisp/parser"
+	"fmt"
+	"os/exec"
 )
 
 func Run() {
 	printLogo()
 	stdlib := compileFile("stdlib/stdlib.rem", false)
 	code := compileFile("input.rem", true)
-	_, _ = stdlib, code
-}
-
-func compileFile(path string, print bool) string {
-	bb, err := os.ReadFile(path)
-	if err != nil {
-		exit("reading input file", err)
+	if err := createFile("out.js", fmt.Sprintf("%s\n\n%s", stdlib, code)); err != nil {
+		exit("creating output file", err)
 	}
-	lexer, err := lexer.New(bb)
-	if err != nil {
-		exit("instantiating lexer", err)
+	if err := exec.Command("deno", "run", "outjs").Run(); err != nil {
+		exit("deno", err)
 	}
-	tokens, erre := lexer.Lex()
-	if erre != nil {
-		exite("lexing error", bb, erre)
-	}
-	if print {
-		prettyPrintTokens(tokens)
-	}
-	parser, err := parser.New(tokens)
-	if err != nil {
-		exit("instantiating parser", err)
-	}
-	exprs, erre := parser.Parse()
-	if erre != nil {
-		exite("parse error", bb, erre)
-	}
-	if print {
-		prettyPrintExprs(exprs)
-	}
-	comp, err := compiler.New(exprs)
-	if err != nil {
-		exit("error instantiating compiler", err)
-	}
-	code, err := comp.Compile(exprs)
-	if err != nil {
-		exit("compile error", err)
-	}
-	if print {
-		prettyPrintCode(code)
-	}
-	return code
 }
