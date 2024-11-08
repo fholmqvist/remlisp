@@ -20,6 +20,20 @@ func (e EOF) Pos() Position {
 	return Position{}
 }
 
+type Nil struct {
+	P Position
+}
+
+func (Nil) Token() {}
+
+func (n Nil) String() string {
+	return "nil"
+}
+
+func (n Nil) Pos() Position {
+	return n.P
+}
+
 type Int struct {
 	V int
 	P Position

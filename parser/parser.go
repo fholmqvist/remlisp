@@ -48,6 +48,8 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 		return nil, err
 	}
 	switch t := next.(type) {
+	case tk.Nil:
+		return p.parseNil(t)
 	case tk.Int:
 		return p.parseInt(t)
 	case tk.Float:
@@ -75,6 +77,10 @@ func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
 	default:
 		return nil, p.errLastTokenType("unexpected token", next)
 	}
+}
+
+func (p *Parser) parseNil(n tk.Nil) (ex.Expr, *e.Error) {
+	return ex.Nil{P: n.P}, nil
 }
 
 func (p *Parser) parseInt(i tk.Int) (ex.Expr, *e.Error) {

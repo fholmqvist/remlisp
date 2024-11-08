@@ -14,6 +14,20 @@ type Expr interface {
 	Pos() tk.Position
 }
 
+type Nil struct {
+	P tk.Position
+}
+
+func (Nil) Expr() {}
+
+func (Nil) String() string {
+	return "nil"
+}
+
+func (Nil) Pos() tk.Position {
+	return tk.Position{}
+}
+
 type Int struct {
 	V int
 	P tk.Position
@@ -436,13 +450,7 @@ func (s Set) Pos() tk.Position {
 /*
 	nil
 	quote
-	keyval
-	map
-	do
 	while
-	var
-	set
 	get
-	append
 	macro
 */

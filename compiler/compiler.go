@@ -37,6 +37,8 @@ func (c *Compiler) Compile(exprs []ex.Expr) (string, error) {
 
 func (c *Compiler) compile(e ex.Expr) (string, error) {
 	switch e := e.(type) {
+	case ex.Nil:
+		return "nil", nil
 	case ex.Int:
 		return fmt.Sprintf("%d", e.V), nil
 	case ex.Float:

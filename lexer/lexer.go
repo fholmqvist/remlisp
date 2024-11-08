@@ -158,6 +158,9 @@ func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 			P: l.Pos(),
 		}, nil
 	}
+	if s == "nil" {
+		return tk.Nil{P: l.Pos()}, nil
+	}
 	return tk.Identifier{
 		V: s,
 		P: l.Pos(),
