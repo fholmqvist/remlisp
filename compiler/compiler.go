@@ -29,9 +29,9 @@ func New(exprs []ex.Expr) (*Compiler, error) {
 	}, nil
 }
 
-func (c *Compiler) Compile(exprs []ex.Expr) (string, error) {
+func (c *Compiler) Compile() (string, error) {
 	var s strings.Builder
-	for _, e := range exprs {
+	for _, e := range c.exprs {
 		code, err := c.compile(e)
 		if err != nil {
 			return "", err
@@ -119,7 +119,7 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 		s.WriteByte(')')
 		return s.String(), nil
 	} else {
-		s.WriteByte('(')
+		s.WriteByte('[')
 		for i, expr := range e.V {
 			code, err := c.compile(expr)
 			if err != nil {
@@ -130,7 +130,7 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 				s.WriteString(", ")
 			}
 		}
-		s.WriteByte(')')
+		s.WriteByte(']')
 		return s.String(), nil
 	}
 

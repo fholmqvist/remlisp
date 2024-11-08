@@ -47,7 +47,7 @@ func compileFile(path string, print bool) string {
 	if err != nil {
 		exit("error instantiating compiler", err)
 	}
-	code, err := comp.Compile(exprs)
+	code, err := comp.Compile()
 	if err != nil {
 		exit("compile error", err)
 	}

@@ -18,6 +18,18 @@ func TestExpander(t *testing.T) {
 			input:  "'(1 2 3)",
 			output: "(1 2 3)",
 		},
+		{
+			input:  "`(1 2 3)",
+			output: "(1 2 3)",
+		},
+		{
+			input:  "`,(1 2 3)",
+			output: "[1 2 3]",
+		},
+		{
+			input:  "`,(+ 1 1)",
+			output: "2",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

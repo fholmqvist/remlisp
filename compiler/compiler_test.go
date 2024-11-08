@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fholmqvist/remlisp/expander"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
@@ -70,7 +69,7 @@ func TestCompiler(t *testing.T) {
 		{input: "(add 1 1)", output: "add(1, 1)"},
 		{
 			input:  "(1 2 3 4)",
-			output: "(1, 2, 3, 4)",
+			output: "[1, 2, 3, 4]",
 		},
 		{
 			input:  "[1 2 3 4]",
@@ -117,10 +116,6 @@ func TestCompiler(t *testing.T) {
 			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\") } })()",
 		},
 		{
-			input:  "'(set x 2)",
-			output: "x = 2;",
-		},
-		{
 			input:  "(macro inc [n] (+ n 1))",
 			output: "// (macro inc [n] (+ n 1))",
 		},
@@ -154,15 +149,11 @@ func getCode(t *testing.T, input string) string {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	exprs, erre = expander.New(exprs).Expand()
-	if erre != nil {
-		t.Fatal(err)
-	}
 	comp, err := New(exprs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	code, err := comp.Compile(exprs)
+	code, err := comp.Compile()
 	if err != nil {
 		t.Fatal(err)
 	}

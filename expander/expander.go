@@ -2,10 +2,15 @@ package expander
 
 import (
 	"fmt"
+	"os/exec"
 
+	"github.com/fholmqvist/remlisp/compiler"
 	er "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
+	"github.com/fholmqvist/remlisp/lexer"
+	"github.com/fholmqvist/remlisp/parser"
+	"github.com/fholmqvist/remlisp/pp"
 )
 
 // ================
@@ -62,6 +67,8 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 		return e.expandCall(expr)
 	case *ex.Quote:
 		return expr.E, nil
+	case *ex.Quasiquote:
+		return e.expandQuasiquote(expr)
 	}
 	return expr, nil
 }
@@ -92,6 +99,89 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 		}
 	}
 	return list, nil
+}
+
+func (e *Expander) expandQuasiquote(expr *ex.Quasiquote) (ex.Expr, *er.Error) {
+	inner := expr.E
+	expanded, err := e.expandQuasiquoteInner(inner)
+	if err != nil {
+		return nil, err
+	}
+	return expanded, nil
+}
+
+func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
+	switch expr := expr.(type) {
+	case *ex.Unquote:
+		// TODO: This is very much a standin hack to
+		//       demonstrate that this actually works.
+		cmp, err := compiler.New([]ex.Expr{expr.E})
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to compile unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.P.End,
+			}
+		}
+		js, err := cmp.Compile()
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to compile unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.P.End,
+			}
+		}
+		bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to execute unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.P.End,
+			}
+		}
+		lisp, err := pp.FromJS(bb)
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to parse unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.Pos().End,
+			}
+		}
+		lexer, err := lexer.New([]byte(lisp))
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to lex unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.Pos().End,
+			}
+		}
+		tokens, erre := lexer.Lex()
+		if erre != nil {
+			return nil, erre
+		}
+		parser, err := parser.New(tokens)
+		if err != nil {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("failed to parse unquote: %s", err.Error()),
+				Start: expr.P.Start,
+				End:   expr.Pos().End,
+			}
+		}
+		exprs, erre := parser.Parse()
+		if erre != nil {
+			return nil, erre
+		}
+		if len(exprs) != 1 {
+			return nil, &er.Error{
+				Msg:   fmt.Sprintf("expected 1 expression, got %d", len(exprs)),
+				Start: expr.P.Start,
+				End:   expr.Pos().End,
+			}
+		}
+		return exprs[0], nil
+	default:
+		return e.expand(expr)
+	}
 }
 
 func (e *Expander) findMacro(name string) (*ex.Macro, bool) {
