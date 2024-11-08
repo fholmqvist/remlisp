@@ -469,6 +469,28 @@ func (g Get) Pos() tk.Position {
 	return g.P
 }
 
+type While struct {
+	Cond Expr
+	Body Expr
+	P    tk.Position
+}
+
+func (While) Expr() {}
+
+func (w While) String() string {
+	var st strings.Builder
+	st.WriteString("(while ")
+	st.WriteString(w.Cond.String())
+	st.WriteString(" ")
+	st.WriteString(w.Body.String())
+	st.WriteByte(')')
+	return st.String()
+}
+
+func (w While) Pos() tk.Position {
+	return w.P
+}
+
 /*
 	nil
 	quote

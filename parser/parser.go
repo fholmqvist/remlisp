@@ -146,6 +146,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseFn(list)
 	case "if":
 		return p.parseIf(list)
+	case "while":
+		return p.parseWhile(list)
 	case "do":
 		return p.parseDo(list)
 	case "var":
@@ -220,6 +222,25 @@ func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 		Cond: cond,
 		Then: then,
 		Else: els,
+	}, nil
+}
+
+func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
+	while := list.Pop()
+	if while == nil || while.String() != "while" {
+		return nil, p.errLastTokenType("expected while", while)
+	}
+	cond := list.Pop()
+	if cond == nil {
+		return nil, p.errLastTokenType("expected condition", cond)
+	}
+	body := list.Pop()
+	if body == nil {
+		return nil, p.errLastTokenType("expected body", body)
+	}
+	return &ex.While{
+		Cond: cond,
+		Body: body,
 	}, nil
 }
 

@@ -14,7 +14,7 @@ type Compiler struct {
 	i     int
 
 	state    state.State
-	oldstate state.State
+	oldstate []state.State
 }
 
 func New(exprs []ex.Expr) (*Compiler, error) {
@@ -25,7 +25,7 @@ func New(exprs []ex.Expr) (*Compiler, error) {
 		exprs:    exprs,
 		i:        0,
 		state:    state.NORMAL,
-		oldstate: state.NORMAL,
+		oldstate: []state.State{},
 	}, nil
 }
 
@@ -71,6 +71,8 @@ func (c *Compiler) compile(e ex.Expr) (string, error) {
 		return c.compileVariableArg(e)
 	case *ex.If:
 		return c.compileIf(e)
+	case *ex.While:
+		return c.compileWhile(e)
 	case *ex.Do:
 		return c.compileDo(e)
 	case *ex.Var:
@@ -97,6 +99,8 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 		return c.compileBinaryOperation(e, op)
 	}
 	if _, ok := e.V[0].(ex.Identifier); ok {
+		c.setState(state.NO_SEMICOLON)
+		defer c.restoreState()
 		s.WriteString(fixName(hd))
 		s.WriteByte('(')
 		rest := e.V[1:]
@@ -234,6 +238,23 @@ func (c *Compiler) compileIf(e *ex.If) (string, error) {
 	return s.String(), nil
 }
 
+func (c *Compiler) compileWhile(e *ex.While) (string, error) {
+	var s strings.Builder
+	s.WriteString("(() => { ")
+	cond, err := c.compile(e.Cond)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(fmt.Sprintf("while (%s) { ", cond))
+	body, err := c.compile(e.Body)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(body)
+	s.WriteString(" } })()")
+	return s.String(), nil
+}
+
 func (c *Compiler) compileDo(e *ex.Do) (string, error) {
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
@@ -332,13 +353,23 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 	return fmt.Sprintf("...%s", arg), nil
 }
 
+var DEBUG_STATE = true
+
 func (c *Compiler) setState(s state.State) {
-	c.oldstate = c.state
+	c.oldstate = append(c.oldstate, c.state)
+	if DEBUG_STATE {
+		fmt.Printf("move: %s -> %s | %v\n", c.state, s, c.oldstate)
+	}
 	c.state = s
 }
 
 func (c *Compiler) restoreState() {
-	c.state = c.oldstate
+	old := c.oldstate[len(c.oldstate)-1]
+	c.oldstate = c.oldstate[:len(c.oldstate)-1]
+	if DEBUG_STATE {
+		fmt.Printf("back: %s -> %s | %v\n", c.state, old, c.oldstate)
+	}
+	c.state = old
 }
 
 func fixName(s string) string {
