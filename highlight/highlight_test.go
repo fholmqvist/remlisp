@@ -48,3 +48,74 @@ func TestHighlights(t *testing.T) {
 		})
 	}
 }
+
+func TestCode(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    Code("()"),
+			expected: Blue("(") + Blue(")"),
+		},
+		{
+			input:    ErrorCode("()"),
+			expected: ErrorLine(Blue("(")) + ErrorLine(Blue(")")),
+		},
+		{
+			input:    Code("1"),
+			expected: Green("1"),
+		},
+		{
+			input:    ErrorCode("1"),
+			expected: ErrorLine(Green("1")),
+		},
+		{
+			input:    Code("\"hello\""),
+			expected: Green("\"hello\""),
+		},
+		{
+			input:    ErrorCode("\"hello\""),
+			expected: ErrorLine(Green("\"hello\"")),
+		},
+		{
+			input:    Code("'hello'"),
+			expected: Green("'hello'"),
+		},
+		{
+			input:    ErrorCode("'hello'"),
+			expected: ErrorLine(Green("'hello'")),
+		},
+		{
+			input:    Code("hello"),
+			expected: "hello",
+		},
+		{
+			input:    ErrorCode("hello"),
+			expected: ErrorLine("hello"),
+		},
+		{
+			input:    Code("fn"),
+			expected: Purple("fn"),
+		},
+		{
+			input:    ErrorCode("fn"),
+			expected: ErrorLine(Purple("fn")),
+		},
+		{
+			input:    Code("+"),
+			expected: Blue("+"),
+		},
+		{
+			input:    ErrorCode("+"),
+			expected: ErrorLine(Blue("+")),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			if tt.expected != tt.input {
+				t.Fatalf("\n\nexpected\n\n%s\n\ngot\n\n%s\n\n", tt.expected, tt.input)
+			}
+		})
+	}
+}

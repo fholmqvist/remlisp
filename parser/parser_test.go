@@ -16,6 +16,10 @@ func TestParse(t *testing.T) {
 		output string
 	}{
 		{
+			input:  "nil",
+			output: "nil",
+		},
+		{
 			input:  "0",
 			output: "0",
 		},
@@ -59,10 +63,12 @@ func TestParse(t *testing.T) {
 			input:  ":a",
 			output: ":a",
 		},
-		{
-			input:  "+",
-			output: "+",
-		},
+		{input: "%", output: "%"},
+		{input: "=", output: "="},
+		{input: "!=", output: "!="},
+		{input: "<=", output: "<="},
+		{input: ">", output: ">"},
+		{input: ">=", output: ">="},
 		{
 			input:  "(1 2 3 4)",
 			output: "(1 2 3 4)",
@@ -90,6 +96,18 @@ func TestParse(t *testing.T) {
 		{
 			input:  "(if (< 1 2) 1 2)",
 			output: "(if (< 1 2) 1 2)",
+		},
+		{
+			input:  "(do 1 2 3)",
+			output: "(do 1 2 3)",
+		},
+		{
+			input:  "(var x 1)",
+			output: "(var x 1)",
+		},
+		{
+			input:  "(set x 2)",
+			output: "(set x 2)",
 		},
 	}
 	for _, tt := range tests {

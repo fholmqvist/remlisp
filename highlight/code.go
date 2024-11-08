@@ -39,18 +39,26 @@ func code(str string, errorColor bool) string {
 				i++
 			}
 			s2.WriteByte('"')
-			s.WriteString(Green(s2.String()))
+			if errorColor {
+				s.WriteString(ErrorLine(Green(s2.String())))
+			} else {
+				s.WriteString(Green(s2.String()))
+			}
 			i++
 		case '\'':
 			var s2 strings.Builder
-			s2.WriteByte('"')
+			s2.WriteByte('\'')
 			i++
 			for i < len(str) && str[i] != '\'' {
 				s2.WriteByte(str[i])
 				i++
 			}
-			s2.WriteByte('"')
-			s.WriteString(Green(s2.String()))
+			s2.WriteByte('\'')
+			if errorColor {
+				s.WriteString(ErrorLine(Green(s2.String())))
+			} else {
+				s.WriteString(Green(s2.String()))
+			}
 			i++
 		default:
 			var s2 strings.Builder

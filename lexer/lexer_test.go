@@ -12,6 +12,10 @@ func TestLexer(t *testing.T) {
 		output string
 	}{
 		{
+			input:  "nil",
+			output: "nil",
+		},
+		{
 			input:  "0",
 			output: "0",
 		},
