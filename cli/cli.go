@@ -3,6 +3,9 @@ package cli
 import (
 	"fmt"
 	"os/exec"
+
+	h "github.com/fholmqvist/remlisp/highlight"
+	"github.com/fholmqvist/remlisp/pp"
 )
 
 func Run() {
@@ -16,5 +19,9 @@ func Run() {
 	if err != nil {
 		exit("deno", err)
 	}
-	fmt.Println(string(bb))
+	lisp, err := pp.FromJS(bb)
+	if err != nil {
+		exit("parsing output", err)
+	}
+	fmt.Printf("%s\n\n", h.Code(lisp))
 }
