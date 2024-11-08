@@ -6,6 +6,7 @@ import (
 
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
+	"github.com/fholmqvist/remlisp/pp"
 	tk "github.com/fholmqvist/remlisp/token"
 )
 
@@ -63,6 +64,15 @@ func prettyPrintCode(code string) {
 		fmt.Println("<no code>")
 	}
 	printLine()
+}
+
+func prettyPrintResult(bb []byte) {
+	fmt.Printf("%s\n", h.Bold("RESULT ============="))
+	if lisp, err := pp.FromJS(bb); err == nil {
+		fmt.Printf("%s\n\n", strings.TrimSpace(h.Code(lisp)))
+	} else {
+		fmt.Printf("%s\n\n", strings.TrimSpace(h.Code(string(bb))))
+	}
 }
 
 func printLine() {
