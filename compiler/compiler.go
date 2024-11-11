@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/fholmqvist/remlisp/compiler/state"
+	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	"github.com/fholmqvist/remlisp/token/operator"
 )
@@ -25,7 +26,7 @@ func New() *Compiler {
 	}
 }
 
-func (c *Compiler) Compile(exprs []ex.Expr) (string, error) {
+func (c *Compiler) Compile(exprs []ex.Expr) (string, *e.Error) {
 	c.exprs = exprs
 	var s strings.Builder
 	for _, e := range c.exprs {
@@ -38,56 +39,58 @@ func (c *Compiler) Compile(exprs []ex.Expr) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compile(e ex.Expr) (string, error) {
-	switch e := e.(type) {
+func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
+	switch expr := expr.(type) {
 	case ex.Nil:
 		return "nil", nil
 	case ex.Int:
-		return fmt.Sprintf("%d", e.V), nil
+		return fmt.Sprintf("%d", expr.V), nil
 	case ex.Float:
-		return fmt.Sprintf("%f", e.V), nil
+		return fmt.Sprintf("%f", expr.V), nil
 	case ex.Bool:
-		return fmt.Sprintf("%t", e.V), nil
+		return fmt.Sprintf("%t", expr.V), nil
 	case ex.String:
-		return fmt.Sprintf("%q", e.V), nil
+		return fmt.Sprintf("%q", expr.V), nil
 	case ex.Identifier:
-		return fixName(e.V), nil
+		return fixName(expr.V), nil
 	case ex.Atom:
-		return fmt.Sprintf("%q", e.String()), nil
+		return fmt.Sprintf("%q", expr.String()), nil
 	case *ex.List:
-		return c.compileList(e)
+		return c.compileList(expr)
 	case *ex.DotList:
-		return c.compileDotList(e)
+		return c.compileDotList(expr)
 	case *ex.Vec:
-		return c.compileVec(e)
+		return c.compileVec(expr)
 	case *ex.Fn:
-		return c.compileFn(e)
+		return c.compileFn(expr)
 	case *ex.AnonymousFn:
-		return c.compileAnonymousFn(e)
+		return c.compileAnonymousFn(expr)
 	case *ex.VariableArg:
-		return c.compileVariableArg(e)
+		return c.compileVariableArg(expr)
 	case *ex.If:
-		return c.compileIf(e)
+		return c.compileIf(expr)
 	case *ex.While:
-		return c.compileWhile(e)
+		return c.compileWhile(expr)
 	case *ex.Do:
-		return c.compileDo(e)
+		return c.compileDo(expr)
 	case *ex.Var:
-		return c.compileVar(e)
+		return c.compileVar(expr)
 	case *ex.Set:
-		return c.compileSet(e)
+		return c.compileSet(expr)
 	case *ex.Get:
-		return c.compileGet(e)
+		return c.compileGet(expr)
 	case *ex.Map:
-		return c.compileMap(e)
+		return c.compileMap(expr)
 	case *ex.Macro:
-		return c.compileMacro(e)
+		return c.compileMacro(expr)
+	case ex.Op:
+		return "", e.FromPosition(expr.Pos(), fmt.Sprintf("misplaced operator: %q", expr))
 	default:
-		return "", fmt.Errorf("unknown expression type: %T", e)
+		return "", e.FromPosition(expr.Pos(), fmt.Sprintf("unknown expression type: %T", expr))
 	}
 }
 
-func (c *Compiler) compileList(e *ex.List) (string, error) {
+func (c *Compiler) compileList(e *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	if len(e.V) == 0 {
 		return "()", nil
@@ -137,7 +140,7 @@ func (c *Compiler) compileList(e *ex.List) (string, error) {
 
 }
 
-func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
+func (c *Compiler) compileDotList(e *ex.DotList) (string, *e.Error) {
 	var s strings.Builder
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
@@ -154,7 +157,7 @@ func (c *Compiler) compileDotList(e *ex.DotList) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, error) {
+func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, *e.Error) {
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
 	opstr := op.String()
@@ -177,7 +180,7 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 	return s.String(), nil
 }
 
-func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
+func (c *Compiler) compileFn(fn *ex.Fn) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("const %s = (", fixName(fn.Name)))
 	for i, p := range fn.Params.V {
@@ -200,7 +203,7 @@ func (c *Compiler) compileFn(fn *ex.Fn) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, error) {
+func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteByte('(')
 	for i, p := range fn.Params.V {
@@ -222,7 +225,7 @@ func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileIf(e *ex.If) (string, error) {
+func (c *Compiler) compileIf(e *ex.If) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => ")
 	cond, err := c.compile(e.Cond)
@@ -245,7 +248,7 @@ func (c *Compiler) compileIf(e *ex.If) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileWhile(e *ex.While) (string, error) {
+func (c *Compiler) compileWhile(e *ex.While) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => { ")
 	cond, err := c.compile(e.Cond)
@@ -262,7 +265,7 @@ func (c *Compiler) compileWhile(e *ex.While) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileDo(e *ex.Do) (string, error) {
+func (c *Compiler) compileDo(e *ex.Do) (string, *e.Error) {
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
 	var s strings.Builder
@@ -282,7 +285,7 @@ func (c *Compiler) compileDo(e *ex.Do) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVar(e *ex.Var) (string, error) {
+func (c *Compiler) compileVar(e *ex.Var) (string, *e.Error) {
 	name := fixName(e.Name)
 	v, err := c.compile(e.V)
 	if err != nil {
@@ -295,7 +298,7 @@ func (c *Compiler) compileVar(e *ex.Var) (string, error) {
 	}
 }
 
-func (c *Compiler) compileSet(e *ex.Set) (string, error) {
+func (c *Compiler) compileSet(e *ex.Set) (string, *e.Error) {
 	name := fixName(e.Name)
 	code, err := c.compile(e.E)
 	if err != nil {
@@ -308,7 +311,7 @@ func (c *Compiler) compileSet(e *ex.Set) (string, error) {
 	}
 }
 
-func (c *Compiler) compileGet(e *ex.Get) (string, error) {
+func (c *Compiler) compileGet(e *ex.Get) (string, *e.Error) {
 	ee, err := c.compile(e.E)
 	if err != nil {
 		return "", err
@@ -320,7 +323,7 @@ func (c *Compiler) compileGet(e *ex.Get) (string, error) {
 	return fmt.Sprintf("%s[%s]", ee, i), nil
 }
 
-func (c *Compiler) compileMap(e *ex.Map) (string, error) {
+func (c *Compiler) compileMap(e *ex.Map) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("({")
 	for i, expr := range e.V {
@@ -340,7 +343,7 @@ func (c *Compiler) compileMap(e *ex.Map) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVec(e *ex.Vec) (string, error) {
+func (c *Compiler) compileVec(e *ex.Vec) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteByte('[')
 	for i, expr := range e.V {
@@ -357,7 +360,7 @@ func (c *Compiler) compileVec(e *ex.Vec) (string, error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
+func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, *e.Error) {
 	arg, err := c.compile(e.V)
 	if err != nil {
 		return "", err
@@ -365,7 +368,7 @@ func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, error) {
 	return fmt.Sprintf("...%s", arg), nil
 }
 
-func (c *Compiler) compileMacro(m *ex.Macro) (string, error) {
+func (c *Compiler) compileMacro(m *ex.Macro) (string, *e.Error) {
 	lines := strings.Split(m.String(), "\n")
 	return fmt.Sprintf("// %s\n\n", strings.Join(lines, "\n// ")), nil
 }

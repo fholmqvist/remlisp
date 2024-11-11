@@ -122,9 +122,9 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 	case *ex.Unquote:
 		// TODO: This is very much a standin hack to
 		//       demonstrate that this actually works.
-		js, err := e.com.Compile([]ex.Expr{expr.E})
-		if err != nil {
-			return nil, errFromStr("failed to compile unquote: %s", err.Error())
+		js, erre := e.com.Compile([]ex.Expr{expr.E})
+		if erre != nil {
+			return nil, erre
 		}
 		bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
 		if err != nil {

@@ -38,9 +38,9 @@ func compileFile(path string, print bool) string {
 	}
 	fmt.Println()
 	comp := compiler.New()
-	code, err := comp.Compile(exprs)
-	if err != nil {
-		exit("compile error", err)
+	code, erre := comp.Compile(exprs)
+	if erre != nil {
+		exite("compile error", bb, erre)
 	}
 	if print {
 		prettyPrintCode(code)
