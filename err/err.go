@@ -1,6 +1,7 @@
 package err
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -20,8 +21,9 @@ func (e Error) String(input []byte) string {
 		start  strings.Builder
 		middle strings.Builder
 		end    strings.Builder
+		i      = lineAbove(input, e)
 	)
-	for i := 0; i < len(input); i++ {
+	for ; i < len(input); i++ {
 		b := input[i]
 		var (
 			startInner  strings.Builder
@@ -41,6 +43,10 @@ func (e Error) String(input []byte) string {
 				row++
 			}
 		}
+		if startInner.Len() > 0 {
+			middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+			middle.WriteString(h.Code(startInner.String()))
+		}
 		for i < e.End {
 			if b != '\n' {
 				middleInner.WriteByte(b)
@@ -48,7 +54,6 @@ func (e Error) String(input []byte) string {
 			i++
 			b = input[i]
 			if i >= e.End {
-				middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
 				middle.WriteString(h.ErrorCode(middleInner.String()))
 				break
 			}
@@ -106,4 +111,22 @@ func NotImplemented(reason, msg string) {
 	panic(fmt.Sprintf("%s: %s: %s",
 		h.Bold(h.Red("not implemented")),
 		h.Bold(reason), msg))
+}
+
+func lineAbove(input []byte, e Error) int {
+	var (
+		last = 0
+		curr = 0
+	)
+	for {
+		best := bytes.Index(input[curr:e.Start], []byte("\n"))
+		if best >= 0 {
+			best += 1
+			last = curr
+			curr += best
+		} else if best < 0 {
+			break
+		}
+	}
+	return last
 }
