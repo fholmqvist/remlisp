@@ -67,8 +67,6 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 		return c.compileVariableArg(expr)
 	case *ex.If:
 		return c.compileIf(expr)
-	case *ex.While:
-		return c.compileWhile(expr)
 	case *ex.Var:
 		return c.compileVar(expr)
 	case *ex.Set:
@@ -98,6 +96,8 @@ func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
 	switch head {
 	case "do":
 		return c.compileDo(list)
+	case "while":
+		return c.compileWhile(list)
 	case ".":
 		return c.compileDotList(list)
 	default:
@@ -255,15 +255,15 @@ func (c *Compiler) compileIf(e *ex.If) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileWhile(e *ex.While) (string, *e.Error) {
+func (c *Compiler) compileWhile(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => { ")
-	cond, err := c.compile(e.Cond)
+	cond, err := c.compile(list.V[1])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(fmt.Sprintf("while (%s) { ", cond))
-	body, err := c.compile(e.Body)
+	body, err := c.compile(list.V[2])
 	if err != nil {
 		return "", err
 	}

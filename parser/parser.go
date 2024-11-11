@@ -226,31 +226,18 @@ func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
-	while := list.Pop()
-	if while == nil {
-		return nil, p.errLastTokenType("expected while", while)
+	if len(list.V) != 3 {
+		return nil, p.errGot(list, "while requires three expressions", list.String())
 	}
-	cond := list.Pop()
-	if cond == nil {
-		return nil, p.errLastTokenType("expected condition", cond)
-	}
-	body := list.Pop()
-	if body == nil {
-		return nil, p.errLastTokenType("expected body", body)
-	}
-	return &ex.While{
-		Cond: cond,
-		Body: body,
-		P:    tk.Between(while.Pos().BumpLeft(), body.Pos().BumpRight()),
-	}, nil
+	return list, nil
 }
 
 func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) == 0 {
-		return nil, p.errExpr(list, "expected do", list)
+		return nil, p.errWas(list, "expected do", list)
 	}
 	if len(list.V) == 1 {
-		return nil, p.errExpr(list, "expected body for do", nil)
+		return nil, p.errWas(list, "expected body for do", nil)
 	}
 	return list, nil
 }
@@ -342,10 +329,10 @@ func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 
 func (p *Parser) parseDotList(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) == 0 {
-		return nil, p.errExpr(list, "expected dot list", list)
+		return nil, p.errWas(list, "expected dot list", list)
 	}
 	if len(list.V) == 1 {
-		return nil, p.errExpr(list, "expected arguments for dot list", nil)
+		return nil, p.errWas(list, "expected arguments for dot list", nil)
 	}
 	return list, nil
 }
@@ -497,7 +484,7 @@ func (p Parser) errLastTokenType(msg string, args any) *e.Error {
 	))
 }
 
-func (p Parser) errExpr(expr ex.Expr, msg string, args any) *e.Error {
+func (p Parser) errWas(expr ex.Expr, msg string, args any) *e.Error {
 	pos := expr.Pos()
 	postr := h.Bold(pos.String())
 	if args == nil {
@@ -527,6 +514,20 @@ func (p Parser) errExpr(expr ex.Expr, msg string, args any) *e.Error {
 			postr,
 			h.Red(msg),
 			args,
+		),
+		Start: pos.Start,
+		End:   pos.End,
+	}
+}
+
+func (p Parser) errGot(expr ex.Expr, msg string, code string) *e.Error {
+	pos := expr.Pos()
+	postr := h.Bold(pos.String())
+	return &e.Error{
+		Msg: fmt.Sprintf("%s: %s: got: %v",
+			postr,
+			h.Red(msg),
+			h.Code(code),
 		),
 		Start: pos.Start,
 		End:   pos.End,
