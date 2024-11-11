@@ -69,8 +69,6 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 		return c.compileIf(expr)
 	case *ex.While:
 		return c.compileWhile(expr)
-	case *ex.Do:
-		return c.compileDo(expr)
 	case *ex.Var:
 		return c.compileVar(expr)
 	case *ex.Set:
@@ -98,6 +96,8 @@ func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
 		return c.compileBinaryOperation(list, op)
 	}
 	switch head {
+	case "do":
+		return c.compileDo(list)
 	case ".":
 		return c.compileDotList(list)
 	default:
@@ -272,17 +272,18 @@ func (c *Compiler) compileWhile(e *ex.While) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileDo(e *ex.Do) (string, *e.Error) {
+func (c *Compiler) compileDo(list *ex.List) (string, *e.Error) {
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
 	var s strings.Builder
 	s.WriteString("(() => { ")
-	for i, expr := range e.V {
+	rest := list.V[1:]
+	for i, expr := range rest {
 		code, err := c.compile(expr)
 		if err != nil {
 			return "", err
 		}
-		if i == len(e.V)-1 {
+		if i == len(rest)-1 {
 			s.WriteString("return ")
 		}
 		s.WriteString(code)

@@ -72,8 +72,6 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 	switch expr := expr.(type) {
 	case *ex.List:
 		return e.expandCall(expr)
-	case *ex.Do:
-		return e.expandDo(expr)
 	case *ex.While:
 		return e.expandWhile(expr)
 	case *ex.Quote:
@@ -107,17 +105,6 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 		}
 	}
 	return list, nil
-}
-
-func (e *Expander) expandDo(do *ex.Do) (ex.Expr, *er.Error) {
-	var err *er.Error
-	for i, expr := range do.V {
-		do.V[i], err = e.expand(expr)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return do, nil
 }
 
 func (e *Expander) expandWhile(expr *ex.While) (ex.Expr, *er.Error) {

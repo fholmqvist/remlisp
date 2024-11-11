@@ -351,30 +351,6 @@ func (i If) Pos() tk.Position {
 	return i.P
 }
 
-type Do struct {
-	V []Expr
-	P tk.Position
-}
-
-func (Do) Expr() {}
-
-func (d Do) String() string {
-	var s strings.Builder
-	s.WriteString("(do ")
-	for i, e := range d.V {
-		if i > 0 {
-			s.WriteByte(' ')
-		}
-		s.WriteString(e.String())
-	}
-	s.WriteByte(')')
-	return s.String()
-}
-
-func (d Do) Pos() tk.Position {
-	return d.P
-}
-
 type Var struct {
 	Name string
 	V    Expr
