@@ -65,8 +65,6 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 		return c.compileAnonymousFn(expr)
 	case *ex.VariableArg:
 		return c.compileVariableArg(expr)
-	case *ex.If:
-		return c.compileIf(expr)
 	case *ex.Map:
 		return c.compileMap(expr)
 	case *ex.Macro:
@@ -96,6 +94,8 @@ func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
 		return c.compileSet(list)
 	case "get":
 		return c.compileGet(list)
+	case "if":
+		return c.compileIf(list)
 	case "while":
 		return c.compileWhile(list)
 	case ".":
@@ -232,21 +232,21 @@ func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileIf(e *ex.If) (string, *e.Error) {
+func (c *Compiler) compileIf(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => ")
-	cond, err := c.compile(e.Cond)
+	cond, err := c.compile(list.V[1])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(fmt.Sprintf("%s ? ", cond))
-	then, err := c.compile(e.Then)
+	then, err := c.compile(list.V[2])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(then)
 	s.WriteString(" : ")
-	els, err := c.compile(e.Else)
+	els, err := c.compile(list.V[3])
 	if err != nil {
 		return "", err
 	}

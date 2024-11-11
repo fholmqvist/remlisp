@@ -204,30 +204,15 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
-	iff := list.Pop()
-	cond := list.Pop()
-	if cond == nil {
-		return nil, p.errLastTokenType("expected condition", cond)
+	if len(list.V) != 4 {
+		return nil, p.errGot(list, "if requires three expressions", list.String())
 	}
-	then := list.Pop()
-	if then == nil {
-		return nil, p.errLastTokenType("expected then", then)
-	}
-	els := list.Pop()
-	if els == nil {
-		return nil, p.errLastTokenType("expected else", els)
-	}
-	return &ex.If{
-		Cond: cond,
-		Then: then,
-		Else: els,
-		P:    tk.Between(iff.Pos().BumpLeft(), els.Pos().BumpRight()),
-	}, nil
+	return list, nil
 }
 
 func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) != 3 {
-		return nil, p.errGot(list, "while requires three expressions", list.String())
+		return nil, p.errGot(list, "while requires two expressions", list.String())
 	}
 	return list, nil
 }
@@ -244,21 +229,21 @@ func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) != 3 {
-		return nil, p.errGot(list, "var requires three expressions", list.String())
+		return nil, p.errGot(list, "var requires two expressions", list.String())
 	}
 	return list, nil
 }
 
 func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) != 3 {
-		return nil, p.errGot(list, "set requires three expressions", list.String())
+		return nil, p.errGot(list, "set requires two expressions", list.String())
 	}
 	return list, nil
 }
 
 func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) != 3 {
-		return nil, p.errGot(list, "get requires three expressions", list.String())
+		return nil, p.errGot(list, "get requires two expressions", list.String())
 	}
 	return list, nil
 }

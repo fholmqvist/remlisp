@@ -326,31 +326,6 @@ func (v VariableArg) Pos() tk.Position {
 	return v.P
 }
 
-type If struct {
-	Cond Expr
-	Then Expr
-	Else Expr
-	P    tk.Position
-}
-
-func (If) Expr() {}
-
-func (i If) String() string {
-	var s strings.Builder
-	s.WriteString("(if ")
-	s.WriteString(i.Cond.String())
-	s.WriteString(" ")
-	s.WriteString(i.Then.String())
-	s.WriteString(" ")
-	s.WriteString(i.Else.String())
-	s.WriteByte(')')
-	return s.String()
-}
-
-func (i If) Pos() tk.Position {
-	return i.P
-}
-
 type Quote struct {
 	E Expr
 	P tk.Position
