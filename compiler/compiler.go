@@ -67,12 +67,6 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 		return c.compileVariableArg(expr)
 	case *ex.If:
 		return c.compileIf(expr)
-	case *ex.Var:
-		return c.compileVar(expr)
-	case *ex.Set:
-		return c.compileSet(expr)
-	case *ex.Get:
-		return c.compileGet(expr)
 	case *ex.Map:
 		return c.compileMap(expr)
 	case *ex.Macro:
@@ -96,6 +90,12 @@ func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
 	switch head {
 	case "do":
 		return c.compileDo(list)
+	case "var":
+		return c.compileVar(list)
+	case "set":
+		return c.compileSet(list)
+	case "get":
+		return c.compileGet(list)
 	case "while":
 		return c.compileWhile(list)
 	case ".":
@@ -293,9 +293,9 @@ func (c *Compiler) compileDo(list *ex.List) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVar(e *ex.Var) (string, *e.Error) {
-	name := fixName(e.Name)
-	v, err := c.compile(e.V)
+func (c *Compiler) compileVar(list *ex.List) (string, *e.Error) {
+	name := fixName(list.V[1].String())
+	v, err := c.compile(list.V[2])
 	if err != nil {
 		return "", err
 	}
@@ -306,9 +306,9 @@ func (c *Compiler) compileVar(e *ex.Var) (string, *e.Error) {
 	}
 }
 
-func (c *Compiler) compileSet(e *ex.Set) (string, *e.Error) {
-	name := fixName(e.Name)
-	code, err := c.compile(e.E)
+func (c *Compiler) compileSet(list *ex.List) (string, *e.Error) {
+	name := fixName(list.V[1].String())
+	code, err := c.compile(list.V[2])
 	if err != nil {
 		return "", err
 	}
@@ -319,12 +319,12 @@ func (c *Compiler) compileSet(e *ex.Set) (string, *e.Error) {
 	}
 }
 
-func (c *Compiler) compileGet(e *ex.Get) (string, *e.Error) {
-	ee, err := c.compile(e.E)
+func (c *Compiler) compileGet(list *ex.List) (string, *e.Error) {
+	ee, err := c.compile(list.V[1])
 	if err != nil {
 		return "", err
 	}
-	i, err := c.compile(e.I)
+	i, err := c.compile(list.V[2])
 	if err != nil {
 		return "", err
 	}

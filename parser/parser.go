@@ -243,70 +243,24 @@ func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
-	_, actual, ok := list.PopIdentifier()
-	if !ok {
-		return nil, p.errLastTokenType("expected var", actual)
+	if len(list.V) != 3 {
+		return nil, p.errGot(list, "var requires three expressions", list.String())
 	}
-	name, actual, ok := list.PopIdentifier()
-	if !ok {
-		return nil, p.errLastTokenType("expected identifier", actual)
-	}
-	value := list.Pop()
-	if value == nil {
-		return nil, p.errLastTokenType("expected value", value)
-	}
-	return &ex.Var{
-		Name: name.V,
-		V:    value,
-		P:    list.P,
-	}, nil
+	return list, nil
 }
 
 func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
-	_, actual, ok := list.PopIdentifier()
-	if !ok {
-		return nil, p.errLastTokenType("expected set", actual)
+	if len(list.V) != 3 {
+		return nil, p.errGot(list, "set requires three expressions", list.String())
 	}
-	namee := list.Pop()
-	if namee == nil {
-		return nil, p.errLastTokenType("expected value", namee)
-	}
-	var name string
-	switch n := namee.(type) {
-	case *ex.Unquote:
-		name = n.E.String()
-	default:
-		name = n.String()
-	}
-	expr := list.Pop()
-	if expr == nil {
-		return nil, p.errLastTokenType("expected value", expr)
-	}
-	return &ex.Set{
-		Name: name,
-		E:    expr,
-		P:    list.P,
-	}, nil
+	return list, nil
 }
 
 func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
-	get, actual, ok := list.PopIdentifier()
-	if !ok || get.String() != "get" {
-		return nil, p.errLastTokenType("expected get", actual)
+	if len(list.V) != 3 {
+		return nil, p.errGot(list, "get requires three expressions", list.String())
 	}
-	e := list.Pop()
-	if e == nil {
-		return nil, p.errLastTokenType("expected value", e)
-	}
-	i := list.Pop()
-	if i == nil {
-		return nil, p.errLastTokenType("expected value", i)
-	}
-	return &ex.Get{
-		E: e,
-		I: i,
-		P: list.P,
-	}, nil
+	return list, nil
 }
 
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {
