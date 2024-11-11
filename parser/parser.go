@@ -159,8 +159,6 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseSet(list)
 	case "get":
 		return p.parseGet(list)
-	case ".":
-		return p.parseDotList(list)
 	case "macro":
 		return p.parseMacro(list)
 	default:
@@ -338,16 +336,6 @@ func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 		return nil, err
 	}
 	return vec, nil
-}
-
-func (p *Parser) parseDotList(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) == 0 {
-		return nil, p.errExpr(list, "expected dot list", list)
-	}
-	if len(list.V) == 1 {
-		return nil, p.errExpr(list, "expected arguments for dot list", nil)
-	}
-	return &ex.DotList{V: list.V[1:], P: list.P}, nil
 }
 
 func (p *Parser) parseMap() (ex.Expr, *e.Error) {

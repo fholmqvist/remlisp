@@ -57,8 +57,6 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 		return fmt.Sprintf("%q", expr.String()), nil
 	case *ex.List:
 		return c.compileList(expr)
-	case *ex.DotList:
-		return c.compileDotList(expr)
 	case *ex.Vec:
 		return c.compileVec(expr)
 	case *ex.Fn:
@@ -90,21 +88,30 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 	}
 }
 
-func (c *Compiler) compileList(e *ex.List) (string, *e.Error) {
-	var s strings.Builder
-	if len(e.V) == 0 {
+func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
+	if len(list.V) == 0 {
 		return "()", nil
 	}
-	hd := e.V[0].String()
-	op, err := operator.From(hd)
+	head := list.V[0].String()
+	op, err := operator.From(head)
 	if err == nil {
-		return c.compileBinaryOperation(e, op)
+		return c.compileBinaryOperation(list, op)
 	}
-	if _, ok := e.V[0].(ex.Identifier); ok {
-		s.WriteString(fixName(hd))
+	switch head {
+	case ".":
+		return c.compileDotList(list)
+	default:
+		return c.compileListRaw(list, head)
+	}
+}
+
+func (c *Compiler) compileListRaw(list *ex.List, head string) (string, *e.Error) {
+	var s strings.Builder
+	if _, ok := list.V[0].(ex.Identifier); ok {
+		s.WriteString(fixName(head))
 		s.WriteByte('(')
 		c.setState(state.NO_SEMICOLON)
-		rest := e.V[1:]
+		rest := list.V[1:]
 		for i, expr := range rest {
 			code, err := c.compile(expr)
 			if err != nil {
@@ -124,33 +131,33 @@ func (c *Compiler) compileList(e *ex.List) (string, *e.Error) {
 		return s.String(), nil
 	} else {
 		s.WriteByte('[')
-		for i, expr := range e.V {
+		for i, expr := range list.V {
 			code, err := c.compile(expr)
 			if err != nil {
 				return "", err
 			}
 			s.WriteString(code)
-			if i < len(e.V)-1 {
+			if i < len(list.V)-1 {
 				s.WriteString(", ")
 			}
 		}
 		s.WriteByte(']')
 		return s.String(), nil
 	}
-
 }
 
-func (c *Compiler) compileDotList(e *ex.DotList) (string, *e.Error) {
+func (c *Compiler) compileDotList(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	c.setState(state.NO_SEMICOLON)
 	defer c.restoreState()
-	for i, expr := range e.V {
+	rest := list.V[1:]
+	for i, expr := range rest {
 		code, err := c.compile(expr)
 		if err != nil {
 			return "", err
 		}
 		s.WriteString(code)
-		if i < len(e.V)-1 {
+		if i < len(rest)-1 {
 			s.WriteByte('.')
 		}
 	}

@@ -208,34 +208,6 @@ func (l *List) Append(e Expr) {
 	l.V = append(l.V, e)
 }
 
-type DotList struct {
-	V []Expr
-	P tk.Position
-}
-
-func (DotList) Expr() {}
-
-func (dl DotList) String() string {
-	var s strings.Builder
-	s.WriteString("(. ")
-	for i, e := range dl.V {
-		if i > 0 {
-			s.WriteByte(' ')
-		}
-		s.WriteString(e.String())
-	}
-	s.WriteByte(')')
-	return s.String()
-}
-
-func (dl DotList) Pos() tk.Position {
-	return dl.P
-}
-
-func (dl *DotList) Append(e Expr) {
-	dl.V = append(dl.V, e)
-}
-
 type Vec struct {
 	V []Expr
 	P tk.Position
