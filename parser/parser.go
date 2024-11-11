@@ -280,16 +280,23 @@ func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
 	if !ok {
 		return nil, p.errLastTokenType("expected set", actual)
 	}
-	name, actual, ok := list.PopIdentifier()
-	if !ok {
-		return nil, p.errLastTokenType("expected identifier", actual)
+	namee := list.Pop()
+	if namee == nil {
+		return nil, p.errLastTokenType("expected value", namee)
+	}
+	var name string
+	switch n := namee.(type) {
+	case *ex.Unquote:
+		name = n.E.String()
+	default:
+		name = n.String()
 	}
 	expr := list.Pop()
 	if expr == nil {
 		return nil, p.errLastTokenType("expected value", expr)
 	}
 	return &ex.Set{
-		Name: name.V,
+		Name: name,
 		E:    expr,
 		P:    list.P,
 	}, nil

@@ -72,6 +72,10 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 	switch expr := expr.(type) {
 	case *ex.List:
 		return e.expandCall(expr)
+	case *ex.Do:
+		return e.expandDo(expr)
+	case *ex.While:
+		return e.expandWhile(expr)
 	case *ex.Quote:
 		return expr.E, nil
 	case *ex.Quasiquote:
@@ -81,9 +85,6 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 }
 
 func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
-	if len(list.V) == 0 {
-		return list, nil
-	}
 	for i, expr := range list.V {
 		switch expr := expr.(type) {
 		case *ex.List:
@@ -106,6 +107,30 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 		}
 	}
 	return list, nil
+}
+
+func (e *Expander) expandDo(do *ex.Do) (ex.Expr, *er.Error) {
+	var err *er.Error
+	for i, expr := range do.V {
+		do.V[i], err = e.expand(expr)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return do, nil
+}
+
+func (e *Expander) expandWhile(expr *ex.While) (ex.Expr, *er.Error) {
+	var err *er.Error
+	expr.Cond, err = e.expand(expr.Cond)
+	if err != nil {
+		return nil, err
+	}
+	expr.Body, err = e.expand(expr.Body)
+	if err != nil {
+		return nil, err
+	}
+	return expr, nil
 }
 
 func (e *Expander) expandQuasiquote(expr *ex.Quasiquote) (ex.Expr, *er.Error) {

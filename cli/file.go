@@ -31,7 +31,9 @@ func compileFile(path string, print bool) string {
 	if print {
 		prettyPrintExprs(exprs)
 	}
-	printExpanderHeader()
+	if print {
+		printExpanderHeader()
+	}
 	exprs, erre = expander.New(exprs).Expand()
 	if erre != nil {
 		exite("expansion error", bb, erre)
