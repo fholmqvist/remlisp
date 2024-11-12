@@ -11,7 +11,7 @@ import (
 )
 
 func Run() {
-	// TODO:
+	// TODO: Actual CLI.
 	printLogo()
 	lexer, parser, compiler := lexer.New(), parser.New(), compiler.New()
 	expander := expander.New(lexer, parser, compiler)
