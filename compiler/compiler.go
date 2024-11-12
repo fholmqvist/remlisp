@@ -28,6 +28,9 @@ func New() *Compiler {
 
 func (c *Compiler) Compile(exprs []ex.Expr) (string, *e.Error) {
 	c.exprs = exprs
+	c.i = 0
+	c.state = state.NORMAL
+	c.oldstate = []state.State{}
 	var s strings.Builder
 	for _, e := range c.exprs {
 		code, err := c.compile(e)

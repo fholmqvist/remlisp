@@ -10,12 +10,13 @@ import (
 	"github.com/fholmqvist/remlisp/parser"
 )
 
-func compileFile(path string, print bool) string {
+func compileFile(path string, print bool, lexer *lexer.Lexer, parser *parser.Parser,
+	expander *expander.Expander, compiler *compiler.Compiler,
+) string {
 	bb, err := os.ReadFile(path)
 	if err != nil {
 		exit("reading input file", err)
 	}
-	lexer := lexer.New()
 	tokens, erre := lexer.Lex(bb)
 	if erre != nil {
 		exite("lexing error", bb, erre)
@@ -23,7 +24,6 @@ func compileFile(path string, print bool) string {
 	if print {
 		prettyPrintTokens(tokens)
 	}
-	parser := parser.New()
 	exprs, erre := parser.Parse(tokens)
 	if erre != nil {
 		exite("parse error", bb, erre)
@@ -34,13 +34,12 @@ func compileFile(path string, print bool) string {
 	if print {
 		printExpanderHeader()
 	}
-	exprs, erre = expander.New(exprs).Expand()
+	exprs, erre = expander.Expand(exprs)
 	if erre != nil {
 		exite("expansion error", bb, erre)
 	}
 	fmt.Println()
-	comp := compiler.New()
-	code, erre := comp.Compile(exprs)
+	code, erre := compiler.Compile(exprs)
 	if erre != nil {
 		exite("compile error", bb, erre)
 	}

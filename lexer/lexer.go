@@ -25,6 +25,8 @@ func New() *Lexer {
 func (l *Lexer) Lex(input []byte) ([]tk.Token, *e.Error) {
 	l.input = string(input)
 	l.ch = input[0]
+	l.i = 0
+	l.oldi = 0
 	tokens := []tk.Token{}
 	for l.inRange() {
 		t, err := l.lex()

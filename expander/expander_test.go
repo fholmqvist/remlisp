@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fholmqvist/remlisp/compiler"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
@@ -58,7 +59,7 @@ func getCode(t *testing.T, input string) string {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	exprs, erre = New(exprs).Expand()
+	exprs, erre = New(lexer, parser, compiler.New()).Expand(exprs)
 	if erre != nil {
 		t.Fatal(erre)
 	}

@@ -45,18 +45,18 @@ type Expander struct {
 	com *compiler.Compiler
 }
 
-func New(exprs []ex.Expr) *Expander {
+func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
 	return &Expander{
-		exprs:  exprs,
 		macros: []*ex.Macro{},
-		lex:    lexer.New(),
-		prs:    parser.New(),
-		com:    compiler.New(),
+		lex:    l,
+		prs:    p,
+		com:    c,
 	}
 }
 
-func (e *Expander) Expand() ([]ex.Expr, *er.Error) {
-	e.predeclareMacros()
+func (e *Expander) Expand(exprs []ex.Expr) ([]ex.Expr, *er.Error) {
+	e.exprs = exprs
+	e.forwardDeclareMacros()
 	for i, expr := range e.exprs {
 		expanded, err := e.expand(expr)
 		if err != nil {
@@ -212,7 +212,7 @@ func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr, quas
 	return &nlist
 }
 
-func (e *Expander) predeclareMacros() {
+func (e *Expander) forwardDeclareMacros() {
 	for _, expr := range e.exprs {
 		if m, ok := expr.(*ex.Macro); ok {
 			e.macros = append(e.macros, m)

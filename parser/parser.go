@@ -25,6 +25,8 @@ func New() *Parser {
 }
 
 func (p *Parser) Parse(tokens []tk.Token) ([]ex.Expr, *e.Error) {
+	p.exprs = []ex.Expr{}
+	p.i = 0
 	p.tokens = tokens
 	for p.inRange() {
 		expr, err := p.parseExpr()
