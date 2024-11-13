@@ -4,13 +4,16 @@ BUILD-TARGET = /usr/local/bin
 COVER = cover.out
 HTML  = cover.html
 
-.PHONY: build run install test cover cover-html clean
+.PHONY: build run run-silent repl install test cover cover-html clean
 
 run:
 	go run . --debug
 
 run-silent:
 	go run .
+
+repl:
+	go run . --repl
 
 install:
 	go build -o rem .
