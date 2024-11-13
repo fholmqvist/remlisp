@@ -164,7 +164,7 @@
 ;; ITERATION
 ;; ============================================================================
 
-(macro for [index start end next body]
+(macro for [[index start end next] body]
   `(do (var ,index ,start)
        (while (!= ,index ,end)
          (do ,body

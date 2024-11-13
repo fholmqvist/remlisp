@@ -21,6 +21,7 @@ _  _, _/_  /___  _  /  / /
 		fmt.Print(h.Bold(h.Blue("Version: ")))
 		fmt.Println(h.Bold(h.Green("0.1.0")))
 	}
+	fmt.Println()
 }
 
 func prettyPrintTokens(tokens []tk.Token) {
