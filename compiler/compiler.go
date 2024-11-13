@@ -271,7 +271,7 @@ func (c *Compiler) compileWhile(list *ex.List) (string, *e.Error) {
 		return "", err
 	}
 	s.WriteString(body)
-	s.WriteString(" } })()")
+	s.WriteString(" } })();")
 	return s.String(), nil
 }
 
