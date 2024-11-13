@@ -93,8 +93,6 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 			return expr.E, nil
 		}
 	case *ex.Quasiquote:
-		e.pushQuasi()
-		defer e.popQuasi()
 		return e.expandQuasiquote(expr)
 	case *ex.Fn:
 		paramse, err := e.expand(expr.Params)
@@ -169,6 +167,8 @@ func (e *Expander) expandVec(vec *ex.Vec) (ex.Expr, *er.Error) {
 }
 
 func (e *Expander) expandQuasiquote(expr *ex.Quasiquote) (ex.Expr, *er.Error) {
+	e.pushQuasi()
+	defer e.popQuasi()
 	inner := expr.E
 	expanded, err := e.expandQuasiquoteInner(inner)
 	if err != nil {

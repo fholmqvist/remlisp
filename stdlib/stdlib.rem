@@ -170,7 +170,9 @@
          (do ,body
              (,next ,index)))))
 
+;; TODO: Fix gensym during macro expansion.
 (macro each [[x xs] body]
-  `(for [i 0 (length ,xs) incf]
-      (do (var ,x (get ,xs i))
-          ,body)))
+  `(do (var _each ,xs)
+       (for [i 0 (length _each) incf]
+          (do (var ,x (get _each i))
+              ,body))))
