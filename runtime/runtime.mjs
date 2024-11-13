@@ -17,12 +17,20 @@ while (true) {
       }
       const result = eval(`'use strict'; ${code}`)
       if (result == null) {
-        console.log({ result: 'nil' })
+        sendResult('nil')
       } else {
-        console.log({ result: JSON.stringify(result) })
+        sendResult(result)
       }
     }
   } catch (error) {
-    console.log({ error: error.message, input: input })
+    sendError(error, input)
   }
+}
+
+function sendResult(result) {
+  console.log(JSON.stringify({ result: JSON.stringify(result) }))
+}
+
+function sendError(error, input) {
+  console.log(JSON.stringify({ error: error.message, input: input }))
 }

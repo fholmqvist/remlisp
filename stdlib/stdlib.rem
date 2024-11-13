@@ -39,14 +39,13 @@
 (fn vec? [xs]
   (Array.isArray xs))
 
-(var __gensym_string__ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
 (fn gensym []
-  (. (Array 16)
-     (fill 0)
-     (map (fn [_]
-            (get __gensym_string__ (random-int 0 (length __gensym_string__)))))
-     (join "")))
+  (do (var __gensym_string__ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+      (. (Array 16)
+         (fill 0)
+         (map (fn [_]
+                (get __gensym_string__ (random-int 0 (length __gensym_string__)))))
+         (join ""))))
 
 ;; ============================================================================
 ;; VECTORS

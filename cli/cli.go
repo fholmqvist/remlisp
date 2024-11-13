@@ -35,7 +35,7 @@ func Run() {
 		shouldPrint := len(os.Args) > 1 && os.Args[1] == "--debug"
 		input, code, erre := cmp.CompileFile("input.rem", shouldPrint, exp)
 		if erre != nil {
-			exite("compiling input.rem", input, erre)
+			exite("reading input", input, erre)
 		}
 		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, stdlib)
 		if err := createFile("out.js", result); err != nil {

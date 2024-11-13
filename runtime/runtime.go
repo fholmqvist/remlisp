@@ -70,7 +70,7 @@ func (r *Runtime) Eval(input []byte) (string, *e.Error) {
 }
 
 func (r *Runtime) Send(s string) (string, *e.Error) {
-	if _, err := r.stdin.Write([]byte(s + "\n\n")); err != nil {
+	if _, err := r.stdin.Write([]byte(s)); err != nil {
 		return "", &e.Error{Msg: err.Error()}
 	}
 	// TODO: Synchronize?

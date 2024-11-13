@@ -32,8 +32,17 @@ func TestExpander(t *testing.T) {
 			output: "2",
 		},
 		{
+			// Do nothing
+			input:  "(fn add-one [n] (+ n 1))",
+			output: "(fn add-one [n] (+ n 1))",
+		},
+		{
 			input:  "(macro inc [n] `(+ ,n 1)) (var x 0) (inc x)",
 			output: "(macro inc [n] `(+ ,n 1)) (var x 0) (+ x 1)",
+		},
+		{
+			input:  "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) (inc-two [1 4])",
+			output: "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) [(+ 1 1) (+ 1 4)]",
 		},
 	}
 	for _, tt := range tests {
@@ -52,12 +61,12 @@ func getCode(t *testing.T, input string) string {
 	lexer := lexer.New()
 	tokens, erre := lexer.Lex(bb)
 	if erre != nil {
-		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
+		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("lexing error"), erre.String(bb))
 	}
 	parser := parser.New()
 	exprs, erre := parser.Parse(tokens)
 	if erre != nil {
-		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
+		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("parse error"), erre.String(bb))
 	}
 	exprs, erre = New(lexer, parser, compiler.New()).Expand(exprs, false)
 	if erre != nil {
