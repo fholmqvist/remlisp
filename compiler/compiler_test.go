@@ -99,6 +99,10 @@ func TestCompiler(t *testing.T) {
 			output: "const id_array = (...x) => x",
 		},
 		{
+			input:  "(fn pair->sum [[x y]] (+ x y))",
+			output: "const pair_arrow_sum = ([x, y]) => (x + y)",
+		},
+		{
 			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
 			output: "Array(10).fill(1).map((_, i) => i)",
 		},

@@ -295,7 +295,7 @@ func (c *Compiler) compileDo(list *ex.List) (string, *e.Error) {
 		s.WriteString(code)
 		s.WriteString("; ")
 	}
-	s.WriteString("})()")
+	s.WriteString("})();")
 	return s.String(), nil
 }
 

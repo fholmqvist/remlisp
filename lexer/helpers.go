@@ -51,7 +51,7 @@ func isIdent(b byte) bool {
 
 func isIdentBody(b byte) bool {
 	return isIdent(b) && !isDelimiter(b) || isDot(b) ||
-		isMinus(b) || isQuestionMark(b) || isExclamationMark(b)
+		isMinus(b) || isRightArrow(b) || isQuestionMark(b) || isExclamationMark(b)
 }
 
 func isQuestionMark(b byte) bool {
@@ -94,6 +94,10 @@ func isComplexOperator(a, b byte) bool {
 
 func isMinus(b byte) bool {
 	return b == '-'
+}
+
+func isRightArrow(b byte) bool {
+	return b == '>'
 }
 
 func isComma(b byte) bool {

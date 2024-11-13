@@ -27,6 +27,7 @@ func (c *Compiler) restoreState() {
 }
 
 func fixName(s string) string {
+	s = strings.ReplaceAll(s, "->", "_arrow_")
 	s = strings.ReplaceAll(s, "-", "_")
 	s = strings.ReplaceAll(s, "?", "P")
 	s = strings.ReplaceAll(s, "!", "Ex")

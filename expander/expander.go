@@ -59,6 +59,7 @@ func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
 func (e *Expander) Expand(exprs []ex.Expr, print bool) ([]ex.Expr, *er.Error) {
 	e.print = print
 	e.exprs = exprs
+	e.printouts = 0
 	e.forwardDeclareMacros()
 	for i, expr := range e.exprs {
 		expanded, err := e.expand(expr)

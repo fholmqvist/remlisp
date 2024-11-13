@@ -235,6 +235,62 @@ func TestError(t *testing.T) {
 				Msg:   "expected body",
 			},
 		},
+		{
+			input: "(if)",
+			output: &e.Error{
+				Start: 0,
+				End:   4,
+				Msg:   "if requires three expressions",
+			},
+		},
+		{
+			input: "(while)",
+			output: &e.Error{
+				Start: 0,
+				End:   7,
+				Msg:   "while requires two expressions",
+			},
+		},
+		{
+			input: "(do)",
+			output: &e.Error{
+				Start: 0,
+				End:   4,
+				Msg:   "expected body for do",
+			},
+		},
+		{
+			input: "(var)",
+			output: &e.Error{
+				Start: 0,
+				End:   5,
+				Msg:   "var requires two expressions",
+			},
+		},
+		{
+			input: "(set)",
+			output: &e.Error{
+				Start: 0,
+				End:   5,
+				Msg:   "set requires two expressions",
+			},
+		},
+		{
+			input: "(get)",
+			output: &e.Error{
+				Start: 0,
+				End:   5,
+				Msg:   "get requires two expressions",
+			},
+		},
+		{
+			input: "(.)",
+			output: &e.Error{
+				Start: 0,
+				End:   3,
+				Msg:   "expected arguments for dot list",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
