@@ -45,6 +45,16 @@ func code(str string, errorColor bool) string {
 				s.WriteString(Green(s2.String()))
 			}
 			i++
+		case ';':
+			var s2 strings.Builder
+			s2.WriteByte(';')
+			i++
+			for i < len(str) && str[i] != '\n' {
+				s2.WriteByte(str[i])
+				i++
+			}
+			s.WriteString(Gray(s2.String()))
+			i++
 		default:
 			var s2 strings.Builder
 			for i < len(str) && !isDelimiter(str[i]) {
