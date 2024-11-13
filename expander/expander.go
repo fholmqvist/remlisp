@@ -160,7 +160,7 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	pos := list.P
 	if len(m.Params.V) != len(list.V)-1 {
 		return nil, &er.Error{
-			Msg:   fmt.Sprintf("expected %d arguments, got %d", len(m.Params.V), len(list.V)),
+			Msg:   fmt.Sprintf("expected %d arguments, got %d", len(m.Params.V), len(list.V)-1),
 			Start: pos.Start,
 			End:   pos.End,
 		}

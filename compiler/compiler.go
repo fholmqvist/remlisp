@@ -10,6 +10,9 @@ import (
 	"github.com/fholmqvist/remlisp/token/operator"
 )
 
+// TODO: Work on converting all statements to expressions.
+//       Void becomes nil.
+
 type Compiler struct {
 	exprs []ex.Expr
 	i     int

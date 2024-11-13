@@ -35,16 +35,19 @@ func (e Error) String(input []byte) string {
 				startInner.WriteByte(b)
 			}
 			i++
+			if i >= len(input)-1 {
+				break
+			}
 			b = input[i]
 			if b == '\n' {
-				start.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				start.WriteString(h.Bold(fmt.Sprintf("\n %.2d | ", row)))
 				start.WriteString(h.Code(startInner.String()))
 				startInner.Reset()
 				row++
 			}
 		}
 		if startInner.Len() > 0 {
-			middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+			middle.WriteString(h.Bold(fmt.Sprintf("\n %.2d | ", row)))
 			middle.WriteString(h.Code(startInner.String()))
 		}
 		for i < e.End {
@@ -52,13 +55,16 @@ func (e Error) String(input []byte) string {
 				middleInner.WriteByte(b)
 			}
 			i++
+			if i >= len(input)-1 {
+				break
+			}
 			b = input[i]
 			if i >= e.End {
 				middle.WriteString(h.ErrorCode(middleInner.String()))
 				break
 			}
 			if b == '\n' {
-				middle.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				middle.WriteString(h.Bold(fmt.Sprintf("\n %.2d | ", row)))
 				middle.WriteString(h.ErrorCode(middleInner.String()))
 				middleInner.Reset()
 				row++
@@ -69,12 +75,15 @@ func (e Error) String(input []byte) string {
 				endInner.WriteByte(b)
 			}
 			i++
+			if i >= len(input)-1 {
+				break
+			}
 			b = input[i]
 			if b == '\n' {
 				end.WriteString(h.Code(endInner.String()))
 				endInner.Reset()
 				row++
-				end.WriteString(h.Bold(fmt.Sprintf("\n %d | ", row)))
+				end.WriteString(h.Bold(fmt.Sprintf("\n %.2d | ", row)))
 			}
 		}
 	}
@@ -114,6 +123,9 @@ func NotImplemented(reason, msg string) {
 }
 
 func lineAbove(input []byte, e Error) int {
+	if len(input) < e.Start {
+		return 0
+	}
 	var (
 		last = 0
 		curr = 0
