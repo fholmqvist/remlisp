@@ -195,7 +195,7 @@ func (t *Transpiler) transpileBinaryOperation(e *ex.List, op operator.Operator) 
 
 func (t *Transpiler) transpileFn(fn *ex.Fn) (string, *e.Error) {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("const %s = (", fixName(fn.Name)))
+	s.WriteString(fmt.Sprintf("function %s(", fixName(fn.Name)))
 	for i, p := range fn.Params.V {
 		pstr, err := t.transpile(p)
 		if err != nil {
@@ -206,13 +206,13 @@ func (t *Transpiler) transpileFn(fn *ex.Fn) (string, *e.Error) {
 			s.WriteString(", ")
 		}
 	}
-	s.WriteString(") => ")
+	s.WriteString(") { return ")
 	body, err := t.transpile(fn.Body)
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(body)
-	s.WriteString("\n\n")
+	s.WriteString(" }\n\n")
 	return s.String(), nil
 }
 

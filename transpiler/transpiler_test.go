@@ -92,15 +92,15 @@ func TestCompiler(t *testing.T) {
 		},
 		{
 			input:  "(fn add [x y] (+ x y))",
-			output: "const add = (x, y) => (x + y)",
+			output: "function add(x, y) { return (x + y) }",
 		},
 		{
 			input:  "(fn id-array [& x] x)",
-			output: "const id_array = (...x) => x",
+			output: "function id_array(...x) { return x }",
 		},
 		{
 			input:  "(fn pair->sum [[x y]] (+ x y))",
-			output: "const pair_arrow_sum = ([x, y]) => (x + y)",
+			output: "function pair_arrow_sum([x, y]) { return (x + y) }",
 		},
 		{
 			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",
