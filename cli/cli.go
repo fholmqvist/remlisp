@@ -5,10 +5,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/fholmqvist/remlisp/compiler"
 	"github.com/fholmqvist/remlisp/expander"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
+	compiler "github.com/fholmqvist/remlisp/transpiler"
 )
 
 func Run() {

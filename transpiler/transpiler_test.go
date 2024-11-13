@@ -1,4 +1,4 @@
-package compiler
+package transpiler
 
 import (
 	"strings"
@@ -162,8 +162,8 @@ func getCode(t *testing.T, input string) string {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	comp := New()
-	code, err := comp.Compile(exprs)
+	trn := New()
+	code, err := trn.Transpile(exprs)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/fholmqvist/remlisp/compiler"
 	er "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
 	"github.com/fholmqvist/remlisp/pp"
+	"github.com/fholmqvist/remlisp/transpiler"
 )
 
 // ================
@@ -42,19 +42,19 @@ type Expander struct {
 
 	lex *lexer.Lexer
 	prs *parser.Parser
-	com *compiler.Compiler
+	trn *transpiler.Transpiler
 
 	quasi []struct{}
 
 	print bool
 }
 
-func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
+func New(l *lexer.Lexer, p *parser.Parser, c *transpiler.Transpiler) *Expander {
 	return &Expander{
 		macros: []*ex.Macro{},
 		lex:    l,
 		prs:    p,
-		com:    c,
+		trn:    c,
 		quasi:  []struct{}{},
 	}
 }
@@ -184,7 +184,7 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 		case *ex.List:
 			// TODO: This is very much a standin hack to
 			//       demonstrate that this actually works.
-			js, erre := e.com.Compile([]ex.Expr{expr.E})
+			js, erre := e.trn.Transpile([]ex.Expr{expr.E})
 			if erre != nil {
 				return nil, erre
 			}

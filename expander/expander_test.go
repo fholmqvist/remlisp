@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fholmqvist/remlisp/compiler"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
+	compiler "github.com/fholmqvist/remlisp/transpiler"
 )
 
 func TestExpander(t *testing.T) {

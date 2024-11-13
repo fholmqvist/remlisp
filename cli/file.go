@@ -3,14 +3,14 @@ package cli
 import (
 	"os"
 
-	"github.com/fholmqvist/remlisp/compiler"
 	"github.com/fholmqvist/remlisp/expander"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
+	compiler "github.com/fholmqvist/remlisp/transpiler"
 )
 
 func compileFile(path string, print bool, lexer *lexer.Lexer, parser *parser.Parser,
-	expander *expander.Expander, compiler *compiler.Compiler,
+	expander *expander.Expander, transpiler *compiler.Transpiler,
 ) string {
 	bb, err := os.ReadFile(path)
 	if err != nil {
@@ -40,7 +40,7 @@ func compileFile(path string, print bool, lexer *lexer.Lexer, parser *parser.Par
 	if print {
 		printLine()
 	}
-	code, erre := compiler.Compile(exprs)
+	code, erre := transpiler.Transpile(exprs)
 	if erre != nil {
 		exite("compile error", bb, erre)
 	}

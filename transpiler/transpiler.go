@@ -1,19 +1,19 @@
-package compiler
+package transpiler
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/fholmqvist/remlisp/compiler/state"
 	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	"github.com/fholmqvist/remlisp/token/operator"
+	"github.com/fholmqvist/remlisp/transpiler/state"
 )
 
 // TODO: Work on converting all statements to expressions.
 //       Void becomes nil.
 
-type Compiler struct {
+type Transpiler struct {
 	exprs []ex.Expr
 	i     int
 
@@ -21,22 +21,22 @@ type Compiler struct {
 	oldstate []state.State
 }
 
-func New() *Compiler {
-	return &Compiler{
+func New() *Transpiler {
+	return &Transpiler{
 		i:        0,
 		state:    state.NORMAL,
 		oldstate: []state.State{},
 	}
 }
 
-func (c *Compiler) Compile(exprs []ex.Expr) (string, *e.Error) {
-	c.exprs = exprs
-	c.i = 0
-	c.state = state.NORMAL
-	c.oldstate = []state.State{}
+func (t *Transpiler) Transpile(exprs []ex.Expr) (string, *e.Error) {
+	t.exprs = exprs
+	t.i = 0
+	t.state = state.NORMAL
+	t.oldstate = []state.State{}
 	var s strings.Builder
-	for _, e := range c.exprs {
-		code, err := c.compile(e)
+	for _, e := range t.exprs {
+		code, err := t.transpile(e)
 		if err != nil {
 			return "", err
 		}
@@ -45,7 +45,7 @@ func (c *Compiler) Compile(exprs []ex.Expr) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
+func (t *Transpiler) transpile(expr ex.Expr) (string, *e.Error) {
 	switch expr := expr.(type) {
 	case ex.Nil:
 		return "nil", nil
@@ -62,19 +62,19 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 	case ex.Atom:
 		return fmt.Sprintf("%q", expr.String()), nil
 	case *ex.List:
-		return c.compileList(expr)
+		return t.transpileList(expr)
 	case *ex.Vec:
-		return c.compileVec(expr)
+		return t.transpileVec(expr)
 	case *ex.Fn:
-		return c.compileFn(expr)
+		return t.transpileFn(expr)
 	case *ex.AnonymousFn:
-		return c.compileAnonymousFn(expr)
+		return t.transpileAnonymousFn(expr)
 	case *ex.VariableArg:
-		return c.compileVariableArg(expr)
+		return t.transpileVariableArg(expr)
 	case *ex.Map:
-		return c.compileMap(expr)
+		return t.transpileMap(expr)
 	case *ex.Macro:
-		return c.compileMacro(expr)
+		return t.transpileMacro(expr)
 	case ex.Op:
 		return "", e.FromPosition(expr.Pos(), fmt.Sprintf("misplaced operator: %q", expr))
 	default:
@@ -82,44 +82,44 @@ func (c *Compiler) compile(expr ex.Expr) (string, *e.Error) {
 	}
 }
 
-func (c *Compiler) compileList(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileList(list *ex.List) (string, *e.Error) {
 	if len(list.V) == 0 {
 		return "()", nil
 	}
 	head := list.V[0].String()
 	op, err := operator.From(head)
 	if err == nil {
-		return c.compileBinaryOperation(list, op)
+		return t.transpileBinaryOperation(list, op)
 	}
 	switch head {
 	case "do":
-		return c.compileDo(list)
+		return t.transpileDo(list)
 	case "var":
-		return c.compileVar(list)
+		return t.transpileVar(list)
 	case "set":
-		return c.compileSet(list)
+		return t.transpileSet(list)
 	case "get":
-		return c.compileGet(list)
+		return t.transpileGet(list)
 	case "if":
-		return c.compileIf(list)
+		return t.transpileIf(list)
 	case "while":
-		return c.compileWhile(list)
+		return t.transpileWhile(list)
 	case ".":
-		return c.compileDotList(list)
+		return t.transpileDotList(list)
 	default:
-		return c.compileListRaw(list, head)
+		return t.transpileListRaw(list, head)
 	}
 }
 
-func (c *Compiler) compileListRaw(list *ex.List, head string) (string, *e.Error) {
+func (t *Transpiler) transpileListRaw(list *ex.List, head string) (string, *e.Error) {
 	var s strings.Builder
 	if _, ok := list.V[0].(ex.Identifier); ok {
 		s.WriteString(fixName(head))
 		s.WriteByte('(')
-		c.setState(state.NO_SEMICOLON)
+		t.setState(state.NO_SEMICOLON)
 		rest := list.V[1:]
 		for i, expr := range rest {
-			code, err := c.compile(expr)
+			code, err := t.transpile(expr)
 			if err != nil {
 				return "", err
 			}
@@ -128,8 +128,8 @@ func (c *Compiler) compileListRaw(list *ex.List, head string) (string, *e.Error)
 				s.WriteString(", ")
 			}
 		}
-		c.restoreState()
-		if c.state == state.NO_SEMICOLON {
+		t.restoreState()
+		if t.state == state.NO_SEMICOLON {
 			s.WriteByte(')')
 		} else {
 			s.WriteString(");")
@@ -138,7 +138,7 @@ func (c *Compiler) compileListRaw(list *ex.List, head string) (string, *e.Error)
 	} else {
 		s.WriteByte('[')
 		for i, expr := range list.V {
-			code, err := c.compile(expr)
+			code, err := t.transpile(expr)
 			if err != nil {
 				return "", err
 			}
@@ -152,13 +152,13 @@ func (c *Compiler) compileListRaw(list *ex.List, head string) (string, *e.Error)
 	}
 }
 
-func (c *Compiler) compileDotList(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileDotList(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
-	c.setState(state.NO_SEMICOLON)
-	defer c.restoreState()
+	t.setState(state.NO_SEMICOLON)
+	defer t.restoreState()
 	rest := list.V[1:]
 	for i, expr := range rest {
-		code, err := c.compile(expr)
+		code, err := t.transpile(expr)
 		if err != nil {
 			return "", err
 		}
@@ -170,9 +170,9 @@ func (c *Compiler) compileDotList(list *ex.List) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (string, *e.Error) {
-	c.setState(state.NO_SEMICOLON)
-	defer c.restoreState()
+func (t *Transpiler) transpileBinaryOperation(e *ex.List, op operator.Operator) (string, *e.Error) {
+	t.setState(state.NO_SEMICOLON)
+	defer t.restoreState()
 	opstr := op.String()
 	if opstr == "=" {
 		opstr = "=="
@@ -180,7 +180,7 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 	var s strings.Builder
 	s.WriteByte('(')
 	for i, expr := range e.V[1:] {
-		code, err := c.compile(expr)
+		code, err := t.transpile(expr)
 		if err != nil {
 			return "", err
 		}
@@ -193,11 +193,11 @@ func (c *Compiler) compileBinaryOperation(e *ex.List, op operator.Operator) (str
 	return s.String(), nil
 }
 
-func (c *Compiler) compileFn(fn *ex.Fn) (string, *e.Error) {
+func (t *Transpiler) transpileFn(fn *ex.Fn) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("const %s = (", fixName(fn.Name)))
 	for i, p := range fn.Params.V {
-		pstr, err := c.compile(p)
+		pstr, err := t.transpile(p)
 		if err != nil {
 			return "", err
 		}
@@ -207,7 +207,7 @@ func (c *Compiler) compileFn(fn *ex.Fn) (string, *e.Error) {
 		}
 	}
 	s.WriteString(") => ")
-	body, err := c.compile(fn.Body)
+	body, err := t.transpile(fn.Body)
 	if err != nil {
 		return "", err
 	}
@@ -216,11 +216,11 @@ func (c *Compiler) compileFn(fn *ex.Fn) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
+func (t *Transpiler) transpileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteByte('(')
 	for i, p := range fn.Params.V {
-		pstr, err := c.compile(p)
+		pstr, err := t.transpile(p)
 		if err != nil {
 			return "", err
 		}
@@ -230,7 +230,7 @@ func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
 		}
 	}
 	s.WriteString(") => ")
-	body, err := c.compile(fn.Body)
+	body, err := t.transpile(fn.Body)
 	if err != nil {
 		return "", err
 	}
@@ -238,21 +238,21 @@ func (c *Compiler) compileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileIf(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileIf(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => ")
-	cond, err := c.compile(list.V[1])
+	cond, err := t.transpile(list.V[1])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(fmt.Sprintf("%s ? ", cond))
-	then, err := c.compile(list.V[2])
+	then, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(then)
 	s.WriteString(" : ")
-	els, err := c.compile(list.V[3])
+	els, err := t.transpile(list.V[3])
 	if err != nil {
 		return "", err
 	}
@@ -261,15 +261,15 @@ func (c *Compiler) compileIf(list *ex.List) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileWhile(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileWhile(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("(() => { ")
-	cond, err := c.compile(list.V[1])
+	cond, err := t.transpile(list.V[1])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(fmt.Sprintf("while (%s) { ", cond))
-	body, err := c.compile(list.V[2])
+	body, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
@@ -278,14 +278,14 @@ func (c *Compiler) compileWhile(list *ex.List) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileDo(list *ex.List) (string, *e.Error) {
-	c.setState(state.NO_SEMICOLON)
-	defer c.restoreState()
+func (t *Transpiler) transpileDo(list *ex.List) (string, *e.Error) {
+	t.setState(state.NO_SEMICOLON)
+	defer t.restoreState()
 	var s strings.Builder
 	s.WriteString("(() => { ")
 	rest := list.V[1:]
 	for i, expr := range rest {
-		code, err := c.compile(expr)
+		code, err := t.transpile(expr)
 		if err != nil {
 			return "", err
 		}
@@ -299,49 +299,49 @@ func (c *Compiler) compileDo(list *ex.List) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVar(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileVar(list *ex.List) (string, *e.Error) {
 	name := fixName(list.V[1].String())
-	v, err := c.compile(list.V[2])
+	v, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
-	if c.state == state.NO_SEMICOLON {
+	if t.state == state.NO_SEMICOLON {
 		return fmt.Sprintf("let %s = %s", name, v), nil
 	} else {
 		return fmt.Sprintf("let %s = %s;", name, v), nil
 	}
 }
 
-func (c *Compiler) compileSet(list *ex.List) (string, *e.Error) {
+func (t *Transpiler) transpileSet(list *ex.List) (string, *e.Error) {
 	name := fixName(list.V[1].String())
-	code, err := c.compile(list.V[2])
+	code, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
-	if c.state == state.NO_SEMICOLON {
+	if t.state == state.NO_SEMICOLON {
 		return fmt.Sprintf("%s = %s", name, code), nil
 	} else {
 		return fmt.Sprintf("%s = %s;", name, code), nil
 	}
 }
 
-func (c *Compiler) compileGet(list *ex.List) (string, *e.Error) {
-	ee, err := c.compile(list.V[1])
+func (t *Transpiler) transpileGet(list *ex.List) (string, *e.Error) {
+	ee, err := t.transpile(list.V[1])
 	if err != nil {
 		return "", err
 	}
-	i, err := c.compile(list.V[2])
+	i, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s[%s]", ee, i), nil
 }
 
-func (c *Compiler) compileMap(e *ex.Map) (string, *e.Error) {
+func (t *Transpiler) transpileMap(e *ex.Map) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteString("({")
 	for i, expr := range e.V {
-		code, err := c.compile(expr)
+		code, err := t.transpile(expr)
 		if err != nil {
 			return "", err
 		}
@@ -357,11 +357,11 @@ func (c *Compiler) compileMap(e *ex.Map) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVec(e *ex.Vec) (string, *e.Error) {
+func (t *Transpiler) transpileVec(e *ex.Vec) (string, *e.Error) {
 	var s strings.Builder
 	s.WriteByte('[')
 	for i, expr := range e.V {
-		code, err := c.compile(expr)
+		code, err := t.transpile(expr)
 		if err != nil {
 			return "", err
 		}
@@ -374,15 +374,15 @@ func (c *Compiler) compileVec(e *ex.Vec) (string, *e.Error) {
 	return s.String(), nil
 }
 
-func (c *Compiler) compileVariableArg(e *ex.VariableArg) (string, *e.Error) {
-	arg, err := c.compile(e.V)
+func (t *Transpiler) transpileVariableArg(e *ex.VariableArg) (string, *e.Error) {
+	arg, err := t.transpile(e.V)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("...%s", arg), nil
 }
 
-func (c *Compiler) compileMacro(m *ex.Macro) (string, *e.Error) {
+func (t *Transpiler) transpileMacro(m *ex.Macro) (string, *e.Error) {
 	lines := strings.Split(m.String(), "\n")
 	return fmt.Sprintf("// %s\n\n", strings.Join(lines, "\n// ")), nil
 }
