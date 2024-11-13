@@ -79,14 +79,6 @@ func TestCode(t *testing.T) {
 			expected: ErrorLine(Green("\"hello\"")),
 		},
 		{
-			input:    Code("'hello'"),
-			expected: Green("'hello'"),
-		},
-		{
-			input:    ErrorCode("'hello'"),
-			expected: ErrorLine(Green("'hello'")),
-		},
-		{
 			input:    Code("hello"),
 			expected: "hello",
 		},

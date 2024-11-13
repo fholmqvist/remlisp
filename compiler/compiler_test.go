@@ -128,7 +128,7 @@ func TestCompiler(t *testing.T) {
 		},
 		{
 			input:  "(while (< 1 2) (println \"infinite loop!\"))",
-			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\"); } })()",
+			output: "(() => { while ((1 < 2)) { println(\"infinite loop!\"); } })();",
 		},
 		{
 			input:  "(macro inc [n] (+ n 1))",

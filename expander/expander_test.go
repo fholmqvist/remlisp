@@ -59,7 +59,7 @@ func getCode(t *testing.T, input string) string {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	exprs, erre = New(lexer, parser, compiler.New()).Expand(exprs)
+	exprs, erre = New(lexer, parser, compiler.New()).Expand(exprs, false)
 	if erre != nil {
 		t.Fatal(erre)
 	}

@@ -122,8 +122,11 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 			if err != nil {
 				return nil, err
 			}
-			e.logMacroExpansion(expr.V)
-			list.V[i] = expanded
+			if i == 0 {
+				return expanded, nil
+			} else {
+				list.V[i] = expanded
+			}
 		}
 	}
 	return list, nil
