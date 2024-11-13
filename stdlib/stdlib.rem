@@ -168,4 +168,4 @@
   `(do (var ,index ,start)
        (while (!= ,index ,end)
          (do ,body
-             ,next))))
+             (,next ,index)))))

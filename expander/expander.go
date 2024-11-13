@@ -122,11 +122,20 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 			if err != nil {
 				return nil, err
 			}
+			if e.print {
+				e.logMacroExpansion(macro.Name)
+			}
 			if i == 0 {
 				return expanded, nil
 			} else {
 				list.V[i] = expanded
 			}
+		default:
+			expanded, err := e.expand(expr)
+			if err != nil {
+				return nil, err
+			}
+			list.V[i] = expanded
 		}
 	}
 	return list, nil
@@ -248,7 +257,11 @@ func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr, quas
 			}
 		}
 	}
-	return &nlist
+	expanded, err := e.expand(&nlist)
+	if err != nil {
+		return nil
+	}
+	return expanded.(*ex.List)
 }
 
 func (e *Expander) forwardDeclareMacros() {
