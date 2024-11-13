@@ -44,6 +44,8 @@ type Expander struct {
 	prs *parser.Parser
 	com *compiler.Compiler
 
+	quasi []struct{}
+
 	print bool
 }
 
@@ -53,6 +55,7 @@ func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
 		lex:    l,
 		prs:    p,
 		com:    c,
+		quasi:  []struct{}{},
 	}
 }
 
@@ -79,7 +82,19 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 		return e.expandVec(expr)
 	case *ex.Quote:
 		return expr.E, nil
+	case *ex.Unquote:
+		if !e.inQuasiquote() {
+			return nil, &er.Error{
+				Msg:   "unquote outside of quasiquote",
+				Start: expr.P.Start,
+				End:   expr.P.End,
+			}
+		} else {
+			return expr.E, nil
+		}
 	case *ex.Quasiquote:
+		e.pushQuasi()
+		defer e.popQuasi()
 		return e.expandQuasiquote(expr)
 	case *ex.Fn:
 		paramse, err := e.expand(expr.Params)
@@ -164,15 +179,6 @@ func (e *Expander) expandQuasiquote(expr *ex.Quasiquote) (ex.Expr, *er.Error) {
 
 func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 	switch expr := expr.(type) {
-	case *ex.List:
-		for i, exp := range expr.V {
-			expanded, err := e.expand(exp)
-			if err != nil {
-				return nil, err
-			}
-			expr.V[i] = expanded
-		}
-		return expr, nil
 	case *ex.Unquote:
 		switch exp := expr.E.(type) {
 		case *ex.List:
@@ -238,13 +244,15 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	}
 	switch body := m.Body.(type) {
 	case *ex.List:
-		return e.replaceArguments(body, args, false), nil
+		return e.replaceArguments(body, args), nil
 	case *ex.Quasiquote:
 		nbody, ok := body.E.(*ex.List)
 		if !ok {
 			return body.E, nil
 		}
-		nlist := e.replaceArguments(nbody, args, true)
+		e.pushQuasi()
+		defer e.popQuasi()
+		nlist := e.replaceArguments(nbody, args)
 		return e.expandQuasiquoteInner(nlist)
 	case *ex.Quote:
 		return body, nil
@@ -253,15 +261,15 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	}
 }
 
-func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr, quasi bool) *ex.List {
+func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr) *ex.List {
 	// Remove reference semantics.
 	nlist := ex.List{V: append([]ex.Expr{}, list.V...)}
 	for i, expr := range nlist.V {
 		switch expr := expr.(type) {
 		case *ex.List:
-			nlist.V[i] = e.replaceArguments(expr, args, quasi)
+			nlist.V[i] = e.replaceArguments(expr, args)
 		default:
-			if quasi {
+			if e.inQuasiquote() {
 				// Strip unquote.
 				arg, ok := args[expr.String()[1:]]
 				if !ok {
@@ -311,23 +319,38 @@ func errFromStr(format string, args ...any) *er.Error {
 	return &er.Error{Msg: fmt.Sprintf(format, args...)}
 }
 
-func macroReplacementArgs(params *ex.Vec, list *ex.List) (map[string]ex.Expr, *er.Error) {
-	args := map[string]ex.Expr{}
+func macroReplacementArgs(params *ex.Vec, args *ex.List) (map[string]ex.Expr, *er.Error) {
+	nargs := map[string]ex.Expr{}
 	for i := range params.V {
-		next := list.V[i+1]
+		arg := args.V[i+1]
 		switch param := params.V[i].(type) {
 		case *ex.Vec:
-			switch next := next.(type) {
+			switch arg := arg.(type) {
 			case *ex.Vec:
+				if len(arg.V) != len(param.V) {
+					return nil, errFromStr("expected %d arguments, got %d", len(param.V), len(arg.V))
+				}
 				for j := range param.V {
-					args[param.V[j].String()] = next.V[j]
+					nargs[param.V[j].String()] = arg.V[j]
 				}
 			default:
-				return nil, errFromStr("expected a nested vector of parameters, got %T", next)
+				return nil, errFromStr("expected a nested vector of parameters, got %T", arg)
 			}
 		default:
-			args[params.V[i].String()] = next
+			nargs[params.V[i].String()] = arg
 		}
 	}
-	return args, nil
+	return nargs, nil
+}
+
+func (e *Expander) inQuasiquote() bool {
+	return len(e.quasi) > 0
+}
+
+func (e *Expander) pushQuasi() {
+	e.quasi = append(e.quasi, struct{}{})
+}
+
+func (e *Expander) popQuasi() {
+	e.quasi = e.quasi[:len(e.quasi)-1]
 }

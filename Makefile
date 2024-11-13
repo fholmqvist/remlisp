@@ -9,6 +9,9 @@ HTML  = cover.html
 run:
 	go run . --debug
 
+run-silent:
+	go run .
+
 install:
 	go build -o rem .
 	sudo mv rem $(BUILD-TARGET)

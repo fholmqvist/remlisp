@@ -169,3 +169,8 @@
        (while (!= ,index ,end)
          (do ,body
              (,next ,index)))))
+
+(macro each [[x xs] body]
+  `(for [i 0 (length ,xs) incf]
+      (do (var ,x (get ,xs i))
+          ,body)))
