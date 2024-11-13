@@ -1,14 +1,17 @@
 package repl
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 
 	h "github.com/fholmqvist/remlisp/highlight"
+	"github.com/fholmqvist/remlisp/pp"
 	"github.com/fholmqvist/remlisp/runtime"
 )
 
@@ -74,7 +77,34 @@ func (r *Repl) evalExprs(input []byte, done chan bool, print bool) {
 		return
 	}
 	if print {
-		fmt.Println(out)
+		var result map[string]any
+		if err := json.Unmarshal([]byte(out), &result); err != nil {
+			fmt.Println(out)
+			return
+		}
+		if r, ok := result["result"]; ok {
+			rstr, ok := r.(string)
+			if !ok {
+				fmt.Println(r)
+				return
+			}
+			pretty, err := pp.FromJS([]byte(rstr))
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			fmt.Println(h.Code(pretty))
+		} else {
+			errstr, ok := result["error"]
+			if !ok {
+				fmt.Printf("\n%s: %s\n", h.Bold(h.Red("error")), "expected error in error JSON")
+				done <- true
+				time.Sleep(time.Second) // Let graceful exit handle it
+				return
+			}
+			fmt.Println(h.Bold(h.Red(errstr.(string))))
+			fmt.Println()
+		}
 	}
 }
 

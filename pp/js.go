@@ -14,6 +14,10 @@ func FromJS(js []byte) (string, error) {
 	if err := json.Unmarshal(js, &obj); err != nil {
 		return "", err
 	}
+	return Object(obj)
+}
+
+func Object(obj any) (string, error) {
 	var s strings.Builder
 	switch obj := obj.(type) {
 	case map[string]any:
