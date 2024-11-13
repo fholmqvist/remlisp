@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/fholmqvist/remlisp/compiler"
@@ -34,11 +33,13 @@ func compileFile(path string, print bool, lexer *lexer.Lexer, parser *parser.Par
 	if print {
 		printExpanderHeader()
 	}
-	exprs, erre = expander.Expand(exprs)
+	exprs, erre = expander.Expand(exprs, print)
 	if erre != nil {
 		exite("expansion error", bb, erre)
 	}
-	fmt.Println()
+	if print {
+		printLine()
+	}
 	code, erre := compiler.Compile(exprs)
 	if erre != nil {
 		exite("compile error", bb, erre)

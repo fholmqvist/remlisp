@@ -43,6 +43,8 @@ type Expander struct {
 	lex *lexer.Lexer
 	prs *parser.Parser
 	com *compiler.Compiler
+
+	print bool
 }
 
 func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
@@ -54,7 +56,8 @@ func New(l *lexer.Lexer, p *parser.Parser, c *compiler.Compiler) *Expander {
 	}
 }
 
-func (e *Expander) Expand(exprs []ex.Expr) ([]ex.Expr, *er.Error) {
+func (e *Expander) Expand(exprs []ex.Expr, print bool) ([]ex.Expr, *er.Error) {
+	e.print = print
 	e.exprs = exprs
 	e.forwardDeclareMacros()
 	for i, expr := range e.exprs {
@@ -71,10 +74,32 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 	switch expr := expr.(type) {
 	case *ex.List:
 		return e.expandCall(expr)
+	case *ex.Vec:
+		return e.expandVec(expr)
 	case *ex.Quote:
 		return expr.E, nil
 	case *ex.Quasiquote:
 		return e.expandQuasiquote(expr)
+	case *ex.Fn:
+		paramse, err := e.expand(expr.Params)
+		if err != nil {
+			return nil, err
+		}
+		params, ok := paramse.(*ex.Vec)
+		if !ok {
+			return nil, &er.Error{
+				Msg:   "expected a vector of parameters",
+				Start: expr.Params.P.Start,
+				End:   expr.Params.P.End,
+			}
+		}
+		expr.Params = params
+		body, err := e.expand(expr.Body)
+		if err != nil {
+			return nil, err
+		}
+		expr.Body = body
+		return expr, nil
 	}
 	return expr, nil
 }
@@ -98,10 +123,21 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 				return nil, err
 			}
 			e.logMacroExpansion(expr.V)
-			return expanded, nil
+			list.V[i] = expanded
 		}
 	}
 	return list, nil
+}
+
+func (e *Expander) expandVec(vec *ex.Vec) (ex.Expr, *er.Error) {
+	for i, expr := range vec.V {
+		expanded, err := e.expand(expr)
+		if err != nil {
+			return nil, err
+		}
+		vec.V[i] = expanded
+	}
+	return vec, nil
 }
 
 func (e *Expander) expandQuasiquote(expr *ex.Quasiquote) (ex.Expr, *er.Error) {
@@ -216,7 +252,9 @@ func (e *Expander) forwardDeclareMacros() {
 	for _, expr := range e.exprs {
 		if m, ok := expr.(*ex.Macro); ok {
 			e.macros = append(e.macros, m)
-			e.logMacro(m)
+			if e.print {
+				e.logMacro(m)
+			}
 		}
 	}
 }
@@ -229,10 +267,12 @@ func (e *Expander) logMacro(m *ex.Macro) {
 }
 
 func (e *Expander) logMacroExpansion(name string) {
-	num := fmt.Sprintf("%.4d", e.printouts)
-	line := fmt.Sprintf("%s: %v", h.Bold("Expanded"), name)
-	fmt.Printf("%s | %s\n", h.Gray(num), line)
-	e.printouts++
+	if e.print {
+		num := fmt.Sprintf("%.4d", e.printouts)
+		line := fmt.Sprintf("%s: %v", h.Bold("Expanded"), name)
+		fmt.Printf("%s | %s\n", h.Gray(num), line)
+		e.printouts++
+	}
 }
 
 func errFromStr(format string, args ...any) *er.Error {
