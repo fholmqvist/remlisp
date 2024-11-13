@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os/exec"
+	"time"
 
 	"github.com/fholmqvist/remlisp/compiler"
 	e "github.com/fholmqvist/remlisp/err"
@@ -21,24 +22,24 @@ type Runtime struct {
 }
 
 func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
-	nodejs := exec.Command("node", "runtime/node.mjs")
-	stdin, err := nodejs.StdinPipe()
+	deno := exec.Command("deno", "run", "runtime/runtime.mjs")
+	stdin, err := deno.StdinPipe()
 	if err != nil {
 		return nil, &e.Error{Msg: err.Error()}
 	}
-	stdout, err := nodejs.StdoutPipe()
+	stdout, err := deno.StdoutPipe()
 	if err != nil {
 		return nil, &e.Error{Msg: err.Error()}
 	}
-	stderr, err := nodejs.StderrPipe()
+	stderr, err := deno.StderrPipe()
 	if err != nil {
 		return nil, &e.Error{Msg: err.Error()}
 	}
-	if err := nodejs.Start(); err != nil {
+	if err := deno.Start(); err != nil {
 		return nil, &e.Error{Msg: err.Error()}
 	}
 	r := &Runtime{
-		deno:   nodejs,
+		deno:   deno,
 		stdin:  stdin,
 		stdout: stdout,
 		cmp:    cmp,
@@ -50,7 +51,7 @@ func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
 			log.Printf("stderr: %s", scanner.Text())
 		}
 	}()
-	_, stdlib, erre := r.cmp.CompileFile("stdlib/stdlib.rem", false, nil)
+	_, stdlib, erre := r.cmp.CompileFile("stdlib/stdlib.rem", false, r.exp)
 	if erre != nil {
 		return nil, erre
 	}
@@ -69,9 +70,11 @@ func (r *Runtime) Eval(input []byte) (string, *e.Error) {
 }
 
 func (r *Runtime) Send(s string) (string, *e.Error) {
-	if _, err := r.stdin.Write([]byte(s)); err != nil {
+	if _, err := r.stdin.Write([]byte(s + "\n\n")); err != nil {
 		return "", &e.Error{Msg: err.Error()}
 	}
+	// TODO: Synchronize?
+	time.Sleep(time.Millisecond * 25)
 	var out string
 	scanner := bufio.NewScanner(r.stdout)
 	if scanner.Scan() {

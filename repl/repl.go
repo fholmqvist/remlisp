@@ -45,7 +45,6 @@ func (r *Repl) Run(stdlib []byte) {
 		signaled = true
 	}()
 	r.evalExprs(stdlib, done, false)
-	fmt.Println()
 	go func() {
 		for {
 			input := r.input()
@@ -67,7 +66,7 @@ func (r *Repl) Run(stdlib []byte) {
 func (r *Repl) evalExprs(input []byte, done chan bool, print bool) {
 	out, err := r.rt.Eval(input)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.String(input) + "\n")
 		return
 	}
 	if strings.HasPrefix(out, "(exit") {

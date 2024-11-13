@@ -11,8 +11,7 @@ while (true) {
     if (code) {
       if (code.startsWith('{')) {
         code = `(${code})`
-      }
-      if (code === 'env') {
+      } else if (code === 'env') {
         console.log(JSON.stringify(Object.keys(context)))
         continue
       }
@@ -24,6 +23,6 @@ while (true) {
       }
     }
   } catch (error) {
-    console.log({ error: error.message })
+    console.log({ error: error.message, input: input })
   }
 }

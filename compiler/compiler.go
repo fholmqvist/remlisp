@@ -6,6 +6,7 @@ import (
 
 	e "github.com/fholmqvist/remlisp/err"
 	"github.com/fholmqvist/remlisp/expander"
+	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
 	"github.com/fholmqvist/remlisp/print"
@@ -77,6 +78,6 @@ func (c *Compiler) Compile(bb []byte, expander *expander.Expander) (string, *e.E
 }
 
 func wrap(msg string, err *e.Error) *e.Error {
-	err.Msg = fmt.Sprintf("%s error: %s", msg, err.Msg)
+	err.Msg = fmt.Sprintf("%s: %s", h.Bold(h.Red(msg+" error")), err.Msg)
 	return err
 }
