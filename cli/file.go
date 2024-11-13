@@ -2,53 +2,7 @@ package cli
 
 import (
 	"os"
-
-	"github.com/fholmqvist/remlisp/expander"
-	"github.com/fholmqvist/remlisp/lexer"
-	"github.com/fholmqvist/remlisp/parser"
-	compiler "github.com/fholmqvist/remlisp/transpiler"
 )
-
-func compileFile(path string, print bool, lexer *lexer.Lexer, parser *parser.Parser,
-	expander *expander.Expander, transpiler *compiler.Transpiler,
-) string {
-	bb, err := os.ReadFile(path)
-	if err != nil {
-		exit("reading input file", err)
-	}
-	tokens, erre := lexer.Lex(bb)
-	if erre != nil {
-		exite("lexing error", bb, erre)
-	}
-	if print {
-		prettyPrintTokens(tokens)
-	}
-	exprs, erre := parser.Parse(tokens)
-	if erre != nil {
-		exite("parse error", bb, erre)
-	}
-	if print {
-		prettyPrintExprs(exprs)
-	}
-	if print {
-		printExpanderHeader()
-	}
-	exprs, erre = expander.Expand(exprs, print)
-	if erre != nil {
-		exite("expansion error", bb, erre)
-	}
-	if print {
-		printLine()
-	}
-	code, erre := transpiler.Transpile(exprs)
-	if erre != nil {
-		exite("compile error", bb, erre)
-	}
-	if print {
-		prettyPrintCode(code)
-	}
-	return code
-}
 
 func createFile(filename, out string) error {
 	return os.WriteFile(filename, []byte(out), os.ModePerm)

@@ -1,4 +1,4 @@
-package cli
+package print
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	tk "github.com/fholmqvist/remlisp/token"
 )
 
-func printLogo() {
+func Logo() {
 	fmt.Println(h.Bold(h.Blue(`_______________________  ___
 ___  __ \__  ____/__   |/  /
 __  /_/ /_  __/  __  /|_/ /
@@ -24,7 +24,7 @@ _  _, _/_  /___  _  /  / /
 	fmt.Println()
 }
 
-func prettyPrintTokens(tokens []tk.Token) {
+func Tokens(tokens []tk.Token) {
 	fmt.Printf("%s\n", h.Bold("TOKENS ============="))
 	if len(tokens) > 0 {
 		for i, t := range tokens {
@@ -35,10 +35,10 @@ func prettyPrintTokens(tokens []tk.Token) {
 	} else {
 		fmt.Println("<no tokens>")
 	}
-	printLine()
+	Line()
 }
 
-func prettyPrintExprs(exprs []ex.Expr) {
+func Exprs(exprs []ex.Expr) {
 	fmt.Printf("%s\n", h.Bold("EXPRESSIONS ========"))
 	if len(exprs) > 0 {
 		for i, e := range exprs {
@@ -49,14 +49,14 @@ func prettyPrintExprs(exprs []ex.Expr) {
 	} else {
 		fmt.Println("<no expressions>")
 	}
-	printLine()
+	Line()
 }
 
-func printExpanderHeader() {
+func ExpanderHeader() {
 	fmt.Printf("%s\n", h.Bold("EXPANDER ==========="))
 }
 
-func prettyPrintCode(code string) {
+func Code(code string) {
 	fmt.Printf("%s\n", h.Bold("CODE ==============="))
 	if len(code) > 0 {
 		for i, line := range strings.Split(code, "\n") {
@@ -67,10 +67,10 @@ func prettyPrintCode(code string) {
 	} else {
 		fmt.Println("<no code>")
 	}
-	printLine()
+	Line()
 }
 
-func prettyPrintResult(bb []byte) {
+func Result(bb []byte) {
 	fmt.Printf("%s\n", h.Bold("RESULT ============="))
 	if lisp, err := pp.FromJS(bb); err == nil {
 		fmt.Printf("%s\n\n", strings.TrimSpace(h.Code(lisp)))
@@ -79,7 +79,7 @@ func prettyPrintResult(bb []byte) {
 	}
 }
 
-func printLine() {
+func Line() {
 	fmt.Printf("%s\n\n",
 		"====================")
 }

@@ -5,20 +5,29 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/fholmqvist/remlisp/compiler"
 	"github.com/fholmqvist/remlisp/expander"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
-	compiler "github.com/fholmqvist/remlisp/transpiler"
+	"github.com/fholmqvist/remlisp/print"
+	"github.com/fholmqvist/remlisp/transpiler"
 )
 
 func Run() {
 	// TODO: Actual CLI.
-	printLogo()
-	lexer, parser, compiler := lexer.New(), parser.New(), compiler.New()
-	expander := expander.New(lexer, parser, compiler)
-	stdlib := compileFile("stdlib/stdlib.rem", false, lexer, parser, expander, compiler)
-	print := len(os.Args) > 1 && os.Args[1] == "--debug"
-	code := compileFile("input.rem", print, lexer, parser, expander, compiler)
+	print.Logo()
+	lexer, parser, transpiler := lexer.New(), parser.New(), transpiler.New()
+	expander := expander.New(lexer, parser, transpiler)
+	c := compiler.New(lexer, parser, transpiler)
+	stdlibInput, stdlib, erre := c.CompileFile("stdlib/stdlib.rem", false, expander)
+	if erre != nil {
+		exite("compiling stdlib", stdlibInput, erre)
+	}
+	shouldPrint := len(os.Args) > 1 && os.Args[1] == "--debug"
+	input, code, erre := c.CompileFile("input.rem", shouldPrint, expander)
+	if erre != nil {
+		exite("compiling input.rem", input, erre)
+	}
 	if err := createFile("out.js", fmt.Sprintf("%s\n\n%s", stdlib, code)); err != nil {
 		exit("creating output file", err)
 	}
@@ -26,5 +35,5 @@ func Run() {
 	if err != nil {
 		exit("deno", err)
 	}
-	prettyPrintResult(bb)
+	print.Result(bb)
 }

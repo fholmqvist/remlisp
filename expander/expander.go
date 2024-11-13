@@ -49,12 +49,12 @@ type Expander struct {
 	print bool
 }
 
-func New(l *lexer.Lexer, p *parser.Parser, c *transpiler.Transpiler) *Expander {
+func New(l *lexer.Lexer, p *parser.Parser, t *transpiler.Transpiler) *Expander {
 	return &Expander{
 		macros: []*ex.Macro{},
 		lex:    l,
 		prs:    p,
-		trn:    c,
+		trn:    t,
 		quasi:  []struct{}{},
 	}
 }
