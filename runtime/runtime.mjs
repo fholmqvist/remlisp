@@ -12,7 +12,7 @@ while (true) {
       if (code.startsWith('{')) {
         code = `(${code})`
       } else if (code === 'env') {
-        console.log(JSON.stringify(Object.keys(context)))
+        sendResult(Object.keys(context))
         continue
       }
       const result = eval(`'use strict'; ${code}`)

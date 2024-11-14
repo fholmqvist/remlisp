@@ -22,7 +22,7 @@ type Runtime struct {
 }
 
 func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
-	deno := exec.Command("deno", "run", "runtime/runtime.mjs")
+	deno := exec.Command("deno", "run", "--allow-read", "runtime/runtime.mjs")
 	stdin, err := deno.StdinPipe()
 	if err != nil {
 		return nil, &e.Error{Msg: err.Error()}

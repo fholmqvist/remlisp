@@ -143,7 +143,7 @@
 (fn odd? [n]
   (= (% n 2) 1))
 
-(macro incf [x]
+(macro inc [x]
   `(set ,x (+ ,x 1)))
 
 ;; ============================================================================
@@ -172,6 +172,6 @@
 ;; TODO: Fix gensym during macro expansion.
 (macro each [[x xs] body]
   `(do (var _each ,xs)
-       (for [i 0 (length _each) incf]
+       (for [i 0 (length _each) inc]
           (do (var ,x (get _each i))
               ,body))))

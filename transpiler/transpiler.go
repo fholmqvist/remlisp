@@ -56,7 +56,7 @@ func (t *Transpiler) transpile(expr ex.Expr) (string, *e.Error) {
 	case ex.Bool:
 		return fmt.Sprintf("%t", expr.V), nil
 	case ex.String:
-		return fmt.Sprintf("%q", expr.V), nil
+		return fmt.Sprintf(`"%s"`, expr.V), nil
 	case ex.Identifier:
 		return fixName(expr.V), nil
 	case ex.Atom:
