@@ -42,7 +42,7 @@ func TestExpander(t *testing.T) {
 		},
 		{
 			input:  "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) (inc-two [1 4])",
-			output: "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) [(+ 1 1) (+ 1 4)]",
+			output: "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) [(+ 1 1) (+ 4 1)]",
 		},
 	}
 	for _, tt := range tests {

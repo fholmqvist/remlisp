@@ -208,6 +208,14 @@ func (l *List) Append(e Expr) {
 	l.V = append(l.V, e)
 }
 
+func (l List) ToVec() *Vec {
+	v := &Vec{P: l.P}
+	for _, e := range l.V {
+		v.Append(e)
+	}
+	return v
+}
+
 type Vec struct {
 	V []Expr
 	P tk.Position
@@ -234,6 +242,14 @@ func (v Vec) Pos() tk.Position {
 
 func (v *Vec) Append(e Expr) {
 	v.V = append(v.V, e)
+}
+
+func (v Vec) ToList() *List {
+	l := &List{P: v.P}
+	for _, e := range v.V {
+		l.Append(e)
+	}
+	return l
 }
 
 type Map struct {

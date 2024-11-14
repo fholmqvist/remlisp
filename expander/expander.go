@@ -246,14 +246,22 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	case *ex.List:
 		return e.replaceArguments(body, args), nil
 	case *ex.Quasiquote:
-		nbody, ok := body.E.(*ex.List)
-		if !ok {
-			return body.E, nil
-		}
 		e.pushQuasi()
 		defer e.popQuasi()
-		nlist := e.replaceArguments(nbody, args)
-		return e.expandQuasiquoteInner(nlist)
+		switch nbody := body.E.(type) {
+		case *ex.List:
+			nlist := e.replaceArguments(nbody, args)
+			return e.expandQuasiquoteInner(nlist)
+		case *ex.Vec:
+			nlist := e.replaceArguments(nbody.ToList(), args)
+			expanded, err := e.expandQuasiquoteInner(nlist)
+			if err != nil {
+				return nil, err
+			}
+			return expanded.(*ex.List).ToVec(), nil
+		default:
+			return nbody, nil
+		}
 	case *ex.Quote:
 		return body, nil
 	default:
