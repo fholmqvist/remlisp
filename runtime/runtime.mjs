@@ -1,36 +1,35 @@
-const context = {}
-while (true) {
-  const buffer = new Uint8Array(1024)
-  const bytesRead = await Deno.stdin.read(buffer)
-  if (bytesRead === null) {
-    break
-  }
-  const input = new TextDecoder().decode(buffer.subarray(0, bytesRead)).trim()
+import { createContext, runInContext } from 'node:vm'
+import process from 'node:process'
+
+const context = createContext({ process: process })
+
+process.stdin.on('data', (data) => {
   try {
-    let code = input
-    if (code) {
-      if (code.startsWith('{')) {
-        code = `(${code})`
-      } else if (code === 'env') {
-        sendResult(Object.keys(context))
-        continue
+    const input = data?.toString().trim()
+    if (input) {
+      if (input.startsWith('{')) {
+        input = `(${input})`
+      } else if (input == 'env') {
+        sendResult(JSON.stringify(Object.keys(context)) + '\n')
+        return
       }
-      const result = eval(`'use strict'; ${code}`)
-      if (result == null) {
-        sendResult('nil')
-      } else {
-        sendResult(result)
-      }
+
+      const result = runInContext(`'use strict'; ${input}`, context)
+      sendResult(result == null ? 'nil' : result)
     }
   } catch (error) {
-    sendError(error, input)
+    sendError(error, data)
   }
-}
+})
 
 function sendResult(result) {
-  console.log(JSON.stringify({ result: JSON.stringify(result) }))
+  process.stdout.write(
+    JSON.stringify({ result: JSON.stringify(result) }) + '\n'
+  )
 }
 
 function sendError(error, input) {
-  console.log(JSON.stringify({ error: error.message, input: input }))
+  process.stdout.write(
+    JSON.stringify({ error: error.message, input: input }) + '\n'
+  )
 }

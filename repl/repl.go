@@ -82,7 +82,6 @@ func (r *Repl) evalExprs(input []byte, done chan bool, print bool) {
 }
 
 func (r *Repl) printResponse(input []byte, out string) {
-	defer fmt.Println()
 	var result map[string]any
 	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		fmt.Println(out)

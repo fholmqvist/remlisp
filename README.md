@@ -11,7 +11,6 @@ A modern Lisp that compiles to JavaScript with first class interop.
         (+ (fib (- n 1))
            (fib (- n 2)))))
 <fn fib>
-
 > (fib 10)
 55
 ```
@@ -22,7 +21,6 @@ A modern Lisp that compiles to JavaScript with first class interop.
     "Returns the sum of two numbers in a vector."
     (+ x y))
 <fn pair->sum>
-
 > (pair->sum [1 4])
 5
 ```
@@ -46,7 +44,6 @@ A modern Lisp that compiles to JavaScript with first class interop.
            (do ,body
                (,next ,index)))))
 <macro for>
-
 > (for [i 0 10 inc]
     (print (inc 1)))
 1 2 3 4 5 6 7 8 9 10
