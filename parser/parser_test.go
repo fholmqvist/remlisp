@@ -291,6 +291,30 @@ func TestError(t *testing.T) {
 				Msg:   "expected arguments for dot list",
 			},
 		},
+		{
+			input: "(macro)",
+			output: &e.Error{
+				Start: 6,
+				End:   7,
+				Msg:   "expected identifier",
+			},
+		},
+		{
+			input: "(macro t)",
+			output: &e.Error{
+				Start: 8,
+				End:   9,
+				Msg:   "expected parameters",
+			},
+		},
+		{
+			input: "(macro t [])",
+			output: &e.Error{
+				Start: 11,
+				End:   12,
+				Msg:   "expected body",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

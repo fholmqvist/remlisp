@@ -83,6 +83,14 @@ func TestCode(t *testing.T) {
 			expected: "hello",
 		},
 		{
+			input:    Code(" hello"),
+			expected: " hello",
+		},
+		{
+			input:    ErrorCode(" hello"),
+			expected: " " + ErrorLine("hello"),
+		},
+		{
 			input:    ErrorCode("hello"),
 			expected: ErrorLine("hello"),
 		},
@@ -101,6 +109,10 @@ func TestCode(t *testing.T) {
 		{
 			input:    ErrorCode("+"),
 			expected: ErrorLine(Blue("+")),
+		},
+		{
+			input:    Code("; hello"),
+			expected: Gray("; hello"),
 		},
 	}
 	for _, tt := range tests {
