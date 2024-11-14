@@ -108,8 +108,8 @@ func TestParse(t *testing.T) {
 			output: "(fn add [x y] (+ x y))",
 		},
 		{
-			input:  "(fn id-array [& x] x)",
-			output: "(fn id-array [& x] x)",
+			input:  "(fn id-array [& x] \"Id function for arrays only.\" x)",
+			output: "(fn id-array [& x] \"Id function for arrays only.\" x)",
 		},
 		{
 			input:  "(. (Array 10) (fill 1) (map (fn [_ i] i)))",

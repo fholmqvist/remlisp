@@ -281,10 +281,11 @@ func (m *Map) AddKV(k, v Expr) {
 }
 
 type Fn struct {
-	Name   string
-	Params *Vec
-	Body   Expr
-	P      tk.Position
+	Name      string
+	Params    *Vec
+	DocString string
+	Body      Expr
+	P         tk.Position
 }
 
 func (Fn) Expr() {}
@@ -296,6 +297,9 @@ func (f Fn) String() string {
 	s.WriteString(" ")
 	s.WriteString(f.Params.String())
 	s.WriteString(" ")
+	if f.DocString != "" {
+		s.WriteString(fmt.Sprintf("%s ", f.DocString))
+	}
 	s.WriteString(f.Body.String())
 	s.WriteByte(')')
 	return s.String()

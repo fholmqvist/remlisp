@@ -186,6 +186,11 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 	if body == nil {
 		return nil, p.errLastTokenType("expected body", body)
 	}
+	var docstring string
+	if len(list.V) == 1 {
+		docstring = body.String()
+		body = list.Pop()
+	}
 	if anonymous {
 		return &ex.AnonymousFn{
 			Params: params,
@@ -194,10 +199,11 @@ func (p *Parser) parseFn(list *ex.List) (ex.Expr, *e.Error) {
 		}, nil
 	} else {
 		return &ex.Fn{
-			Name:   name.V,
-			Params: params,
-			Body:   body,
-			P:      tk.Between(fn.Pos().BumpLeft(), body.Pos().BumpRight()),
+			Name:      name.V,
+			Params:    params,
+			DocString: docstring,
+			Body:      body,
+			P:         tk.Between(fn.Pos().BumpLeft(), body.Pos().BumpRight()),
 		}, nil
 	}
 }
