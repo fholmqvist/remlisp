@@ -230,7 +230,7 @@ func (e *Expander) findMacro(name string) (*ex.Macro, bool) {
 
 func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) {
 	pos := list.P
-	if len(m.Params.V) != len(list.V)-1 {
+	if len(m.Params.V) != len(list.V)-1 && !m.Params.HasAmpersand() {
 		return nil, &er.Error{
 			Msg:   fmt.Sprintf("expected %d arguments, got %d", len(m.Params.V), len(list.V)-1),
 			Start: pos.Start,
@@ -259,7 +259,8 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 			}
 			return expanded.(*ex.List).ToVec(), nil
 		default:
-			return nbody, nil
+			nbody = e.replaceArgument(nbody, args)
+			return e.expandQuasiquoteInner(nbody)
 		}
 	case *ex.Quote:
 		return body, nil
@@ -272,27 +273,27 @@ func (e *Expander) replaceArguments(list *ex.List, args map[string]ex.Expr) *ex.
 	// Remove reference semantics.
 	nlist := ex.List{V: append([]ex.Expr{}, list.V...)}
 	for i, expr := range nlist.V {
-		switch expr := expr.(type) {
-		case *ex.List:
-			nlist.V[i] = e.replaceArguments(expr, args)
-		default:
-			if e.inQuasiquote() {
-				// Strip unquote.
-				arg, ok := args[expr.String()[1:]]
-				if !ok {
-					continue
-				}
-				nlist.V[i] = arg
-			} else {
-				arg, ok := args[expr.String()]
-				if !ok {
-					continue
-				}
-				nlist.V[i] = arg
-			}
-		}
+		nlist.V[i] = e.replaceArgument(expr, args)
 	}
 	return &nlist
+}
+
+func (e *Expander) replaceArgument(expr ex.Expr, args map[string]ex.Expr) ex.Expr {
+	switch expr := expr.(type) {
+	case *ex.List:
+		return e.replaceArguments(expr, args)
+	default:
+		name := expr.String()
+		if e.inQuasiquote() {
+			// Strip unquote.
+			name = name[1:]
+		}
+		arg, ok := args[name]
+		if !ok {
+			return expr
+		}
+		return arg
+	}
 }
 
 func (e *Expander) forwardDeclareMacros() {
@@ -324,8 +325,10 @@ func macroReplacementArgs(params *ex.Vec, args *ex.List) (map[string]ex.Expr, *e
 			default:
 				return nil, errFromStr("expected a nested vector of parameters, got %T", arg)
 			}
+		case *ex.VariableArg:
+			nargs[param.V.V] = arg
 		default:
-			nargs[params.V[i].String()] = arg
+			nargs[param.String()] = arg
 		}
 	}
 	return nargs, nil

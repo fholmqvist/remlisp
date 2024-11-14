@@ -46,12 +46,8 @@ func isNewLine(b byte) bool {
 }
 
 func isIdent(b byte) bool {
-	return b == '_' || unicode.IsLetter(rune(b))
-}
-
-func isIdentBody(b byte) bool {
-	return isIdent(b) && !isDelimiter(b) || isDot(b) ||
-		isMinus(b) || isRightArrow(b) || isQuestionMark(b) || isExclamationMark(b)
+	return !isDelimiter(b) && (unicode.IsLetter(rune(b)) || isUnderscore(b) || isDot(b) ||
+		isMinus(b) || isRightArrow(b) || isQuestionMark(b) || isExclamationMark(b))
 }
 
 func isQuestionMark(b byte) bool {
@@ -68,6 +64,10 @@ func isString(b byte) bool {
 
 func isComment(b byte) bool {
 	return b == ';'
+}
+
+func isUnderscore(b byte) bool {
+	return b == '_'
 }
 
 func isOperator(b byte) bool {

@@ -252,6 +252,15 @@ func (v Vec) ToList() *List {
 	return l
 }
 
+func (v Vec) HasAmpersand() bool {
+	for _, e := range v.V {
+		if _, ok := e.(*VariableArg); ok {
+			return true
+		}
+	}
+	return false
+}
+
 type Map struct {
 	V []Expr
 	P tk.Position

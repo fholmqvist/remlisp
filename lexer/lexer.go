@@ -7,6 +7,7 @@ import (
 	e "github.com/fholmqvist/remlisp/err"
 	h "github.com/fholmqvist/remlisp/highlight"
 	tk "github.com/fholmqvist/remlisp/token"
+	"github.com/fholmqvist/remlisp/token/operator"
 )
 
 type Lexer struct {
@@ -150,7 +151,7 @@ func (l *Lexer) lexNumber() (tk.Token, *e.Error) {
 
 func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 	line := []byte{}
-	for l.inRange() && isIdentBody(l.ch) {
+	for l.inRange() && !isDelimiter(l.ch) {
 		line = append(line, l.ch)
 		l.step()
 	}
@@ -160,9 +161,14 @@ func (l *Lexer) lexIdent() (tk.Token, *e.Error) {
 			V: s == "true",
 			P: l.Pos(),
 		}, nil
-	}
-	if s == "nil" {
+	} else if s == "nil" {
 		return tk.Nil{P: l.Pos()}, nil
+	}
+	if _, err := operator.From(s); err == nil {
+		return tk.Operator{
+			V: s,
+			P: l.Pos(),
+		}, nil
 	}
 	return tk.Identifier{
 		V: s,
