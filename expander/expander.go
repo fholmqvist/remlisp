@@ -3,6 +3,7 @@ package expander
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	er "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
@@ -203,7 +204,6 @@ func (e *Expander) eval(list *ex.List) (ex.Expr, *er.Error) {
 	if erre != nil {
 		return nil, erre
 	}
-	fmt.Println(js)
 	bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
 	if err != nil {
 		return list, nil // errFromStr("failed to eval: %s", err.Error())
@@ -272,10 +272,10 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 		}
 	case *ex.Quote:
 		n := e.replaceArgument(body.E, args)
-		return n, nil
+		return e.expand(n)
 	default:
 		n := e.replaceArgument(body, args)
-		return n, nil
+		return e.expand(n)
 	}
 }
 
@@ -294,7 +294,7 @@ func (e *Expander) replaceArgument(expr ex.Expr, args map[string]ex.Expr) ex.Exp
 		return e.replaceArguments(expr, args)
 	default:
 		name := expr.String()
-		if e.inQuasiquote() {
+		if e.inQuasiquote() && strings.HasPrefix(name, ",") {
 			// Strip unquote.
 			name = name[1:]
 		}
