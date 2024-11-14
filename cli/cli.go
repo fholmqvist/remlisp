@@ -6,7 +6,9 @@ import (
 	"os/exec"
 
 	"github.com/fholmqvist/remlisp/compiler"
+	e "github.com/fholmqvist/remlisp/err"
 	"github.com/fholmqvist/remlisp/expander"
+	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
 	"github.com/fholmqvist/remlisp/print"
@@ -38,7 +40,7 @@ func Run() {
 			exite("reading input", input, erre)
 		}
 		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, stdlib)
-		if err := createFile("out.js", result); err != nil {
+		if err := os.WriteFile("out.js", []byte(result), os.ModePerm); err != nil {
 			exit("creating output file", err)
 		}
 		bb, err := exec.Command("deno", "run", "--allow-read", "out.js").Output()
@@ -47,4 +49,14 @@ func Run() {
 		}
 		print.Result(bb)
 	}
+}
+
+func exit(context string, err error) {
+	fmt.Printf("%s: %s\n\n", h.Red(h.Bold("error "+context)), err)
+	os.Exit(1)
+}
+
+func exite(context string, input []byte, err *e.Error) {
+	fmt.Printf("%s:\n%s\n\n", h.Red(h.Bold("error "+context)), err.String(input))
+	os.Exit(1)
 }
