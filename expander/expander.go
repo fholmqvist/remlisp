@@ -181,32 +181,7 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 	case *ex.Unquote:
 		switch exp := expr.E.(type) {
 		case *ex.List:
-			// TODO: This is very much a standin hack to
-			//       demonstrate that this actually works.
-			js, erre := e.trn.Transpile([]ex.Expr{expr.E})
-			if erre != nil {
-				return nil, erre
-			}
-			bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
-			if err != nil {
-				return nil, errFromStr("failed to execute unquote: %s", err.Error())
-			}
-			lisp, err := pp.FromJS(bb)
-			if err != nil {
-				return nil, errFromStr("failed to parse unquote: %s", err.Error())
-			}
-			tokens, erre := e.lex.Lex([]byte(lisp))
-			if erre != nil {
-				return nil, erre
-			}
-			exprs, erre := e.prs.Parse(tokens)
-			if erre != nil {
-				return nil, erre
-			}
-			if len(exprs) != 1 {
-				return nil, errFromStr("expected 1 expression, got %d", len(exprs))
-			}
-			return exprs[0], nil
+			return e.eval(exp)
 		default:
 			expanded, err := e.expand(exp)
 			if err != nil {
@@ -217,6 +192,38 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 	default:
 		return e.expand(expr)
 	}
+}
+
+func (e *Expander) eval(list *ex.List) (ex.Expr, *er.Error) {
+	expanded, erre := e.expand(list)
+	if erre != nil {
+		return nil, erre
+	}
+	js, erre := e.trn.TranspileOne(expanded)
+	if erre != nil {
+		return nil, erre
+	}
+	fmt.Println(js)
+	bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
+	if err != nil {
+		return list, nil // errFromStr("failed to eval: %s", err.Error())
+	}
+	lisp, err := pp.FromJS(bb)
+	if err != nil {
+		return nil, errFromStr("failed to parse unquote: %s", err.Error())
+	}
+	tokens, erre := e.lex.Lex([]byte(lisp))
+	if erre != nil {
+		return nil, erre
+	}
+	exprs, erre := e.prs.Parse(tokens)
+	if erre != nil {
+		return nil, erre
+	}
+	if len(exprs) != 1 {
+		return nil, errFromStr("expected 1 expression, got %d", len(exprs))
+	}
+	return exprs[0], nil
 }
 
 func (e *Expander) findMacro(name string) (*ex.Macro, bool) {
@@ -243,7 +250,8 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 	}
 	switch body := m.Body.(type) {
 	case *ex.List:
-		return e.replaceArguments(body, args), nil
+		nlist := e.replaceArguments(body, args)
+		return e.eval(nlist)
 	case *ex.Quasiquote:
 		e.pushQuasi()
 		defer e.popQuasi()
@@ -263,9 +271,11 @@ func (e *Expander) expandMacro(m *ex.Macro, list *ex.List) (ex.Expr, *er.Error) 
 			return e.expandQuasiquoteInner(nbody)
 		}
 	case *ex.Quote:
-		return body, nil
+		n := e.replaceArgument(body.E, args)
+		return n, nil
 	default:
-		return body, nil
+		n := e.replaceArgument(body, args)
+		return n, nil
 	}
 }
 
@@ -326,7 +336,13 @@ func macroReplacementArgs(params *ex.Vec, args *ex.List) (map[string]ex.Expr, *e
 				return nil, errFromStr("expected a nested vector of parameters, got %T", arg)
 			}
 		case *ex.VariableArg:
-			nargs[param.V.V] = arg
+			// TODO:
+			// nlist := &ex.List{V: make([]ex.Expr, len(args.V[i+1:]))}
+			// for i, arg := range args.V[i+1:] {
+			// 	nlist.V[i] = &ex.Quote{E: arg, P: arg.Pos()}
+			// }
+			nargs[param.V.V] = &ex.List{V: args.V[i+1:]}
+			return nargs, nil
 		default:
 			nargs[param.String()] = arg
 		}

@@ -45,6 +45,21 @@ func (t *Transpiler) Transpile(exprs []ex.Expr) (string, *e.Error) {
 	return s.String(), nil
 }
 
+func (t *Transpiler) TranspileOne(expr ex.Expr) (string, *e.Error) {
+	t.exprs = []ex.Expr{expr}
+	t.i = 0
+	t.state = state.NORMAL
+	t.oldstate = []state.State{}
+	var s strings.Builder
+	code, err := t.transpile(expr)
+	if err != nil {
+		return "", err
+	}
+	s.WriteString(code)
+	return s.String(), nil
+
+}
+
 func (t *Transpiler) transpile(expr ex.Expr) (string, *e.Error) {
 	switch expr := expr.(type) {
 	case ex.Nil:
@@ -75,6 +90,8 @@ func (t *Transpiler) transpile(expr ex.Expr) (string, *e.Error) {
 		return t.transpileMap(expr)
 	case *ex.Macro:
 		return t.transpileMacro(expr)
+	case *ex.Quote:
+		return expr.E.String(), nil
 	case ex.Op:
 		return "", e.FromPosition(expr.Pos(), fmt.Sprintf("misplaced operator: %q", expr))
 	default:
