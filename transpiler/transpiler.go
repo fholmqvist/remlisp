@@ -145,12 +145,12 @@ func (t *Transpiler) transpileListRaw(list *ex.List, head string) (string, *e.Er
 				s.WriteString(", ")
 			}
 		}
-		t.restoreState()
 		if t.state == state.NO_SEMICOLON {
 			s.WriteByte(')')
 		} else {
 			s.WriteString(");")
 		}
+		t.restoreState()
 		return s.String(), nil
 	} else {
 		s.WriteByte('[')
@@ -316,7 +316,10 @@ func (t *Transpiler) transpileDo(list *ex.List) (string, *e.Error) {
 		s.WriteString(code)
 		s.WriteString("; ")
 	}
-	s.WriteString("})();")
+	s.WriteString("})()")
+	if t.state != state.NO_SEMICOLON {
+		s.WriteByte(';')
+	}
 	return s.String(), nil
 }
 

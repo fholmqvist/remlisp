@@ -44,6 +44,9 @@ func Run() {
 		if err := os.WriteFile("out.js", []byte(result), os.ModePerm); err != nil {
 			exit("creating output file", err)
 		}
+		if _, err := exec.Command("deno", "fmt", "out.js").Output(); err != nil {
+			exit("deno fmt", err)
+		}
 		bb, err := exec.Command("deno", "run", "--allow-read", "out.js").Output()
 		if err != nil {
 			exit("deno", err)

@@ -6,18 +6,21 @@
 Of alpha quality, but usable.
 
 **Compiler features**
-* Interoperability with all Javascript environments (Node, Deno, Bun, browser etc)
-* First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
-* First class compiler error messages
+
+- Interoperability with all Javascript environments (Node, Deno, Bun, browser etc)
+- First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
+- First class compiler error messages
 
 **Language features**
-* First class functions
-* Pattern matching
-* Destructuring
-* Threading
-* Macros
+
+- First class functions
+- Pattern matching
+- Destructuring
+- Threading
+- Macros
 
 **Fennel inspired syntax**
+
 ```clojure
 > (fn fib [n]
     (if (< n 2)
@@ -33,6 +36,7 @@ Of alpha quality, but usable.
 ```
 
 **Destructuring**
+
 ```clojure
 > (fn pair->sum [[x y]]
     "Returns the sum of two numbers in a vector."
@@ -46,6 +50,7 @@ Of alpha quality, but usable.
 ```
 
 **Pattern matching**
+
 ```clojure
 > (match [1 2 3]
     []      "empty list"
@@ -58,6 +63,7 @@ Of alpha quality, but usable.
 ```
 
 **Macros**
+
 ```clojure
 > (macro for [[index start end next] body]
     `(do (var ,index ,start)
@@ -74,6 +80,7 @@ Of alpha quality, but usable.
 ```
 
 **First class interop with any JS runtime**
+
 ```clojure
 > (-> (. Deno (readTextFileSync "README.md"))
       (split-lines)
@@ -84,14 +91,16 @@ Of alpha quality, but usable.
 
 ## Installation
 
-Requires [Go 1.22](https://go.dev/dl/).
+Requires [Go 1.22](https://go.dev/dl/) and [Deno](https://deno.com/) as the compiler uses it as the default environment in which to run compiled code.
 
 **Linux**
+
 ```bash
 $ make install
 ```
 
 **Others**
+
 ```bash
 $ make build
 $ mv rem $(SOME_PATH)
