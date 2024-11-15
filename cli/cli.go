@@ -19,7 +19,10 @@ import (
 
 func Run() {
 	// TODO: Actual CLI.
-	print.Logo()
+	shouldPrint := len(os.Args) > 1 && os.Args[1] == "--debug"
+	if shouldPrint {
+		print.Logo()
+	}
 	lexer := lexer.New()
 	parser, transpiler := parser.New(lexer), transpiler.New()
 	exp := expander.New(lexer, parser, transpiler)
@@ -35,7 +38,6 @@ func Run() {
 		}
 		repl.Run(rt, stdlibInput)
 	} else {
-		shouldPrint := len(os.Args) > 1 && os.Args[1] == "--debug"
 		input, code, erre := cmp.CompileFile("input.rem", shouldPrint, exp)
 		if erre != nil {
 			exite("reading input", input, erre)
@@ -51,7 +53,7 @@ func Run() {
 		if err != nil {
 			exit("deno", err)
 		}
-		print.Result(bb)
+		print.Result(bb, shouldPrint)
 	}
 }
 

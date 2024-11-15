@@ -70,8 +70,12 @@ func Code(code string) {
 	Line()
 }
 
-func Result(bb []byte) {
-	fmt.Printf("%s\n", h.Bold("RESULT ============="))
+func Result(bb []byte, debug bool) {
+	if debug {
+		fmt.Printf("%s\n", h.Bold("RESULT ============="))
+	} else {
+		fmt.Println()
+	}
 	if lisp, err := pp.FromJS(bb); err == nil {
 		fmt.Printf("%s\n\n", strings.TrimSpace(h.Code(lisp)))
 	} else {
