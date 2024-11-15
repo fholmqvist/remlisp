@@ -91,7 +91,12 @@ func (e Error) String(input []byte) string {
 	errline.WriteString(start.String())
 	errline.WriteString(middle.String())
 	errline.WriteString(end.String())
-	return fmt.Sprintf("%s\n\n%s", errline.String(), e.Msg)
+	errstr := errline.String()
+	if len(errstr) > 0 {
+		return fmt.Sprintf("%s\n\n%s", errstr, e.Msg)
+	} else {
+		return fmt.Sprintf("\n%s", e.Msg)
+	}
 }
 
 func FromToken(t tk.Token, msg string) *Error {

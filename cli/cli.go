@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/alexflint/go-arg"
+
 	"github.com/fholmqvist/remlisp/compiler"
 	e "github.com/fholmqvist/remlisp/err"
 	"github.com/fholmqvist/remlisp/expander"
@@ -18,11 +20,8 @@ import (
 )
 
 func Run() {
-	// TODO: Actual CLI.
-	shouldPrint := len(os.Args) > 1 && os.Args[1] == "--debug"
-	if shouldPrint {
-		print.Logo()
-	}
+	var settings Settings
+	parg := arg.MustParse(&settings)
 	lexer := lexer.New()
 	parser, transpiler := parser.New(lexer), transpiler.New()
 	exp := expander.New(lexer, parser, transpiler)
@@ -31,14 +30,18 @@ func Run() {
 	if erre != nil {
 		exite("compiling stdlib", stdlibInput, erre)
 	}
-	if len(os.Args) > 1 && os.Args[1] == "--repl" {
+	if settings.REPL {
+		print.Logo()
 		rt, erre := runtime.New(cmp, exp)
 		if erre != nil {
 			exite("creating runtime", []byte{}, erre)
 		}
 		repl.Run(rt, stdlibInput)
-	} else {
-		input, code, erre := cmp.CompileFile("input.rem", shouldPrint, exp)
+	} else if settings.Path != "" {
+		if settings.Debug {
+			print.Logo()
+		}
+		input, code, erre := cmp.CompileFile(settings.Path, settings.Debug, exp)
 		if erre != nil {
 			exite("reading input", input, erre)
 		}
@@ -53,7 +56,11 @@ func Run() {
 		if err != nil {
 			exit("deno", err)
 		}
-		print.Result(bb, shouldPrint)
+		print.Result(bb, settings.Debug)
+	} else {
+		print.Logo()
+		parg.WriteUsage(os.Stdout)
+		fmt.Println()
 	}
 }
 
