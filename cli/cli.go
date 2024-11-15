@@ -16,6 +16,7 @@ import (
 	"github.com/fholmqvist/remlisp/print"
 	"github.com/fholmqvist/remlisp/repl"
 	"github.com/fholmqvist/remlisp/runtime"
+	"github.com/fholmqvist/remlisp/stdlib"
 	"github.com/fholmqvist/remlisp/transpiler"
 )
 
@@ -26,26 +27,26 @@ func Run() {
 	parser, transpiler := parser.New(lexer), transpiler.New()
 	exp := expander.New(lexer, parser, transpiler)
 	cmp := compiler.New(lexer, parser, transpiler)
-	stdlibInput, stdlib, erre := cmp.CompileFile("stdlib/stdlib.rem", false, exp)
-	if erre != nil {
-		exite("compiling stdlib", stdlibInput, erre)
-	}
 	if settings.REPL {
 		print.Logo()
 		rt, erre := runtime.New(cmp, exp)
 		if erre != nil {
 			exite("creating runtime", []byte{}, erre)
 		}
-		repl.Run(rt, stdlibInput)
+		repl.Run(rt, stdlib.Stdlib)
 	} else if settings.Path != "" {
 		if settings.Debug {
 			print.Logo()
+		}
+		std, erre := cmp.Compile(stdlib.Stdlib, exp)
+		if erre != nil {
+			exite("compiling stdlib", stdlib.Stdlib, erre)
 		}
 		input, code, erre := cmp.CompileFile(settings.Path, settings.Debug, exp)
 		if erre != nil {
 			exite("reading input", input, erre)
 		}
-		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, stdlib)
+		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, std)
 		if err := os.WriteFile("out.js", []byte(result), os.ModePerm); err != nil {
 			exit("creating output file", err)
 		}
