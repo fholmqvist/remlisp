@@ -2,11 +2,13 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	"github.com/fholmqvist/remlisp/lexer"
+	"github.com/fholmqvist/remlisp/parser/state"
 	tk "github.com/fholmqvist/remlisp/token"
 	"github.com/fholmqvist/remlisp/token/operator"
 )
@@ -17,6 +19,9 @@ type Parser struct {
 
 	lex   *lexer.Lexer
 	inner *Parser
+
+	state    state.State
+	oldstate []state.State
 
 	i int
 }
@@ -32,10 +37,12 @@ func New(lex *lexer.Lexer) *Parser {
 // Parent parser doesn't need a lexer, nested does.
 func nnew(lex *lexer.Lexer, inner *Parser) *Parser {
 	return &Parser{
-		exprs: []ex.Expr{},
-		lex:   lex,
-		inner: inner,
-		i:     0,
+		exprs:    []ex.Expr{},
+		lex:      lex,
+		inner:    inner,
+		state:    state.NORMAL,
+		oldstate: []state.State{},
+		i:        0,
 	}
 }
 
@@ -140,6 +147,7 @@ func (p *Parser) parseAtom(a tk.Atom) (ex.Expr, *e.Error) {
 
 func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	list := &ex.List{}
+	var statesSet int
 	for p.inRange() && !p.is(tk.RightParen{}) {
 		expr, err := p.parseExpr()
 		if err != nil {
@@ -148,7 +156,14 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		if expr == nil {
 			continue
 		}
+		if expr.String() == "->" {
+			p.setState(state.THREADING)
+			statesSet++
+		}
 		list.Append(expr)
+	}
+	for i := 0; i < statesSet; i++ {
+		p.restoreState()
 	}
 	if err := p.eat(tk.RightParen{}); err != nil {
 		return nil, err
@@ -182,6 +197,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseMacro(list)
 	case "match":
 		return p.parseMatch(list)
+	case "->":
+		return p.parseThreadFirst(list)
 	default:
 		return list, nil
 	}
@@ -236,38 +253,38 @@ func (p *Parser) parseIf(list *ex.List) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseWhile(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) != 3 {
+	if len(list.V) != 3 && p.state != state.THREADING {
 		return nil, p.errGot(list, "while requires two expressions", list.String())
 	}
 	return list, nil
 }
 
 func (p *Parser) parseDo(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) == 0 {
+	if len(list.V) == 0 && p.state != state.THREADING {
 		return nil, p.errWas(list, "expected do", list)
 	}
-	if len(list.V) == 1 {
+	if len(list.V) == 1 && p.state != state.THREADING {
 		return nil, p.errWas(list, "expected body for do", nil)
 	}
 	return list, nil
 }
 
 func (p *Parser) parseVar(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) != 3 {
+	if len(list.V) != 3 && p.state != state.THREADING {
 		return nil, p.errGot(list, "var requires two expressions", list.String())
 	}
 	return list, nil
 }
 
 func (p *Parser) parseSet(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) != 3 {
+	if len(list.V) != 3 && p.state != state.THREADING {
 		return nil, p.errGot(list, "set requires two expressions", list.String())
 	}
 	return list, nil
 }
 
 func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
-	if len(list.V) != 3 {
+	if len(list.V) != 3 && p.state != state.THREADING {
 		return nil, p.errGot(list, "get requires two expressions", list.String())
 	}
 	return list, nil
@@ -462,4 +479,34 @@ func (p *Parser) parseMatch(list *ex.List) (ex.Expr, *e.Error) {
 		return nil, err
 	}
 	return nliste[0], nil
+}
+
+func (p *Parser) parseThreadFirst(list *ex.List) (ex.Expr, *e.Error) {
+	if len(list.V) == 0 {
+		return nil, p.errWas(list, "expected thread first", list)
+	}
+	_ = list.Pop()
+	fst := list.Pop()
+	snde := list.Pop()
+	snd := snde.(*ex.List)
+	if len(snd.V) > 1 {
+		snd.V = slices.Insert(snd.V, 1, fst)
+	} else {
+		snd.Append(fst)
+	}
+	last := snd
+	for len(list.V) > 0 {
+		nexte := list.Pop()
+		next, ok := nexte.(*ex.List)
+		if !ok {
+			return nil, p.errWas(nexte, "expected list", nexte)
+		}
+		if len(next.V) > 1 {
+			next.V = slices.Insert(next.V, 1, ex.Expr(last))
+		} else {
+			next.Append(last)
+		}
+		last = next
+	}
+	return last, nil
 }

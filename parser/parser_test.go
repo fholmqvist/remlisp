@@ -159,6 +159,10 @@ func TestParse(t *testing.T) {
 			input:  "(match [1 2] [_ 2] \"_ two\" :else \"unknown\")",
 			output: "(if (and (= (length [1 2]) (length [0 2])) (= 2 (get [1 2] 1))) \"_ two\" \"unknown\")",
 		},
+		{
+			input:  "(-> [1 2 3] (get 2) (println))",
+			output: "(println (get [1 2 3] 2))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

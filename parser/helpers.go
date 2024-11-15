@@ -6,6 +6,7 @@ import (
 	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
 	h "github.com/fholmqvist/remlisp/highlight"
+	"github.com/fholmqvist/remlisp/parser/state"
 	tk "github.com/fholmqvist/remlisp/token"
 )
 
@@ -16,6 +17,10 @@ func (p *Parser) next() (tk.Token, *e.Error) {
 	t := p.tokens[p.i]
 	p.i++
 	return t, nil
+}
+
+func (p Parser) inRange() bool {
+	return p.i < len(p.tokens)
 }
 
 func (p *Parser) is(t tk.Token) bool {
@@ -31,6 +36,25 @@ func (p *Parser) eat(t tk.Token) *e.Error {
 	}
 	p.i++
 	return nil
+}
+
+var DEBUG_STATE = false
+
+func (p *Parser) setState(s state.State) {
+	p.oldstate = append(p.oldstate, p.state)
+	if DEBUG_STATE {
+		fmt.Printf("move: %s -> %s | %v\n", p.state, s, p.oldstate)
+	}
+	p.state = s
+}
+
+func (p *Parser) restoreState() {
+	old := p.oldstate[len(p.oldstate)-1]
+	p.oldstate = p.oldstate[:len(p.oldstate)-1]
+	if DEBUG_STATE {
+		fmt.Printf("back: %s -> %s | %v\n", p.state, old, p.oldstate)
+	}
+	p.state = old
 }
 
 func (p Parser) errLastTokenType(msg string, args any) *e.Error {
@@ -105,8 +129,4 @@ func (p Parser) errGot(expr ex.Expr, msg string, code string) *e.Error {
 		Start: pos.Start,
 		End:   pos.End,
 	}
-}
-
-func (p Parser) inRange() bool {
-	return p.i < len(p.tokens)
 }

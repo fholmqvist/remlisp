@@ -118,7 +118,7 @@
         (set result (flatmap result (fn [s] (split s v))))))
       (filter result Boolean)))
 
-(fn split-newlines [str]
+(fn split-lines [str]
   (split str "\n"))
 
 (fn split-spaces [str]
