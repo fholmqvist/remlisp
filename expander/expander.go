@@ -132,9 +132,15 @@ func (e *Expander) expandCall(list *ex.List) (ex.Expr, *er.Error) {
 			if !ok {
 				continue
 			}
-			expanded, err := e.expandMacro(macro, list)
-			if err != nil {
-				return nil, err
+			var expanded ex.Expr
+			var err *er.Error
+			if list.IsHead(expr) {
+				expanded, err = e.expandMacro(macro, list)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				expanded = macro.AsFn()
 			}
 			if e.print {
 				e.logMacroExpansion(macro.Name)

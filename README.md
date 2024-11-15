@@ -1,6 +1,16 @@
 <p align="center"><img src="logo.png"></p>
 <p align="center">A modern Lisp that compiles to JavaScript with first class interoperability.</p>
 
+**Language functionality**
+* Output works with all Javascript environments (Node, Deno, Bun, browser etc)
+* First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
+
+**Language features**
+* First class functions
+* Pattern matching
+* Threading
+* Macros
+
 **Fennel inspired syntax**
 ```clojure
 > (fn fib [n]
@@ -8,8 +18,11 @@
         n
         (+ (fib (- n 1))
            (fib (- n 2)))))
+
 <fn fib>
+
 > (fib 10)
+
 55
 ```
 
@@ -18,8 +31,11 @@
 > (fn pair->sum [[x y]]
     "Returns the sum of two numbers in a vector."
     (+ x y))
+
 <fn pair->sum>
+
 > (pair->sum [1 4])
+
 5
 ```
 
@@ -31,6 +47,7 @@
     [_ _]   "two items"
     [1 _ 3] "one something three"
     :else   "unknown")
+
 "one something three"
 ```
 
@@ -41,9 +58,12 @@
          (while (!= ,index ,end)
            (do ,body
                (,next ,index)))))
+
 <macro for>
+
 > (for [i 0 10 inc]
     (print (inc 1)))
+
 1 2 3 4 5 6 7 8 9 10
 ```
 
@@ -52,5 +72,6 @@
 > (-> (. Deno (readTextFileSync "README.md"))
       (split-lines)
       (get 2))
+
 "A modern Lisp that compiles to JavaScript with first class interop."
 ```

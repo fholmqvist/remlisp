@@ -62,7 +62,7 @@ func (c *Compiler) Compile(bb []byte, expander *expander.Expander) (string, *e.E
 	}
 	exprs, err = expander.Expand(exprs, c.print)
 	if err != nil {
-		return "", wrap("exansion", err)
+		return "", wrap("expansion", err)
 	}
 	if c.print {
 		print.Line()

@@ -171,6 +171,13 @@ func (l *List) Last() Expr {
 	return l.V[len(l.V)-1]
 }
 
+func (l *List) IsHead(e Expr) bool {
+	if len(l.V) == 0 {
+		return false
+	}
+	return l.V[0].String() == e.String()
+}
+
 func (l *List) Pop() Expr {
 	if len(l.V) == 0 {
 		return nil
@@ -396,6 +403,15 @@ func (m Macro) String() string {
 
 func (m Macro) Pos() tk.Position {
 	return m.P
+}
+
+func (m Macro) AsFn() *Fn {
+	return &Fn{
+		Name:   m.Name,
+		Params: removeQuotes(m.Params).(*Vec),
+		Body:   removeQuotes(m.Body),
+		P:      m.P,
+	}
 }
 
 type Quasiquote struct {
