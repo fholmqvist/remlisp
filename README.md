@@ -81,3 +81,18 @@ Of alpha quality, but usable.
 
 "A modern Lisp that compiles to JavaScript with first class interop."
 ```
+
+## Installation
+
+Requires [Go 1.22](https://go.dev/dl/).
+
+**Linux**
+```bash
+$ make install
+```
+
+**Others**
+```bash
+$ make build
+$ mv rem $(SOME_PATH)
+```

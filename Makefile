@@ -4,7 +4,7 @@ BUILD-TARGET = /usr/local/bin
 COVER = cover.out
 HTML  = cover.html
 
-.PHONY: build run run-debug repl install test cover cover-html clean
+.PHONY: build run run-debug repl build install test cover cover-html clean
 
 run:
 	go run .
@@ -15,8 +15,10 @@ run-debug:
 repl:
 	go run . --repl
 
-install:
+build:
 	go build -o rem .
+
+install: build
 	sudo mv rem $(BUILD-TARGET)
 
 test:
