@@ -69,6 +69,9 @@
 (fn filter [f xs]
   (xs.filter (fn [x] (f x))))
 
+(fn reject [f xs]
+  (xs.filter (fn [x] (not (f x)))))
+
 (fn take-while [f xs]
   (do (var i 0)
       (while (f (xs.at i))
@@ -175,3 +178,11 @@
        (for [i 0 (length _each) inc]
           (do (var ,x (get _each i))
               ,body))))
+
+;; ============================================================================
+;; VARIOUS
+;; ============================================================================
+
+(macro setf [get f]
+  `(do (var fff ,f)
+       (set ,get (fff ,get))))

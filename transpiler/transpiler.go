@@ -145,12 +145,12 @@ func (t *Transpiler) transpileListRaw(list *ex.List, head string) (string, *e.Er
 				s.WriteString(", ")
 			}
 		}
+		t.restoreState()
 		if t.state == state.NO_SEMICOLON {
 			s.WriteByte(')')
 		} else {
 			s.WriteString(");")
 		}
-		t.restoreState()
 		return s.String(), nil
 	} else {
 		s.WriteByte('[')
@@ -260,6 +260,8 @@ func (t *Transpiler) transpileAnonymousFn(fn *ex.AnonymousFn) (string, *e.Error)
 }
 
 func (t *Transpiler) transpileIf(list *ex.List) (string, *e.Error) {
+	t.setState(state.NO_SEMICOLON)
+	defer t.restoreState()
 	var s strings.Builder
 	s.WriteString("(() => ")
 	cond, err := t.transpile(list.V[1])
@@ -337,7 +339,11 @@ func (t *Transpiler) transpileVar(list *ex.List) (string, *e.Error) {
 }
 
 func (t *Transpiler) transpileSet(list *ex.List) (string, *e.Error) {
-	name := fixName(list.V[1].String())
+	name, err := t.transpile(list.V[1])
+	if err != nil {
+		return "", err
+	}
+	name = fixName(name)
 	code, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err

@@ -491,7 +491,10 @@ func (p *Parser) parseThreadFirst(list *ex.List) (ex.Expr, *e.Error) {
 	_ = list.Pop()
 	fst := list.Pop()
 	snde := list.Pop()
-	snd := snde.(*ex.List)
+	snd, ok := snde.(*ex.List)
+	if !ok {
+		return nil, p.errWas(snde, "expected list", snde)
+	}
 	if len(snd.V) > 1 {
 		snd.V = slices.Insert(snd.V, 1, fst)
 	} else {
@@ -521,7 +524,10 @@ func (p *Parser) parseThreadLast(list *ex.List) (ex.Expr, *e.Error) {
 	_ = list.Pop()
 	fst := list.Pop()
 	snde := list.Pop()
-	snd := snde.(*ex.List)
+	snd, ok := snde.(*ex.List)
+	if !ok {
+		return nil, p.errWas(snde, "expected list", snde)
+	}
 	snd.Append(fst)
 	last := snd
 	for len(list.V) > 0 {
