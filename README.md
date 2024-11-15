@@ -1,7 +1,5 @@
-# Remlisp
-
-A modern Lisp that compiles to JavaScript with first class interop.
-
+<p align="center"><img src="logo.png"></p>
+<p align="center">A modern Lisp that compiles to JavaScript with first class interoperability.</p>
 
 **Fennel inspired syntax**
 ```clojure
