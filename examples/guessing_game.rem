@@ -1,0 +1,16 @@
+;;; NOTE: Running this in the compiler freezes
+;;;       as prompting from Deno whilst also
+;;;       running in Go seems to not work.
+
+(var playing true)
+(var secret (random-int 1 100))
+
+(while playing
+  (do (println "Guess a number between 1 and 100:")
+      (var guess (prompt ">"))
+      (if (= guess secret)
+          (do (println "You win!")
+              (set playing false))
+          (if (< guess secret)
+              (println "Too low!")
+              (println "Too high!")))))

@@ -8,6 +8,7 @@ const (
 	UNKNOWN State = iota
 	NORMAL
 	NO_SEMICOLON
+	IN_STATEMENT
 )
 
 func (s State) String() string {
@@ -18,6 +19,8 @@ func (s State) String() string {
 		return "NORMAL"
 	case NO_SEMICOLON:
 		return "NO_SEMICOLON"
+	case IN_STATEMENT:
+		return "IN_STATEMENT"
 	default:
 		panic(fmt.Errorf("unknown state: %d", s))
 	}

@@ -286,18 +286,19 @@ func (t *Transpiler) transpileIf(list *ex.List) (string, *e.Error) {
 
 func (t *Transpiler) transpileWhile(list *ex.List) (string, *e.Error) {
 	var s strings.Builder
-	s.WriteString("(() => { ")
 	cond, err := t.transpile(list.V[1])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(fmt.Sprintf("while (%s) { ", cond))
+	t.setState(state.IN_STATEMENT)
+	defer t.restoreState()
 	body, err := t.transpile(list.V[2])
 	if err != nil {
 		return "", err
 	}
 	s.WriteString(body)
-	s.WriteString(" } })();")
+	s.WriteString(" };")
 	return s.String(), nil
 }
 
@@ -312,14 +313,14 @@ func (t *Transpiler) transpileDo(list *ex.List) (string, *e.Error) {
 		if err != nil {
 			return "", err
 		}
-		if i == len(rest)-1 {
+		if i == len(rest)-1 && !t.hasState(state.IN_STATEMENT) {
 			s.WriteString("return ")
 		}
 		s.WriteString(code)
 		s.WriteString("; ")
 	}
 	s.WriteString("})()")
-	if t.state != state.NO_SEMICOLON {
+	if !t.hasState(state.NO_SEMICOLON) {
 		s.WriteByte(';')
 	}
 	return s.String(), nil
@@ -331,7 +332,7 @@ func (t *Transpiler) transpileVar(list *ex.List) (string, *e.Error) {
 	if err != nil {
 		return "", err
 	}
-	if t.state == state.NO_SEMICOLON {
+	if t.hasState(state.NO_SEMICOLON) {
 		return fmt.Sprintf("let %s = %s", name, v), nil
 	} else {
 		return fmt.Sprintf("let %s = %s;", name, v), nil
@@ -348,7 +349,7 @@ func (t *Transpiler) transpileSet(list *ex.List) (string, *e.Error) {
 	if err != nil {
 		return "", err
 	}
-	if t.state == state.NO_SEMICOLON {
+	if t.hasState(state.NO_SEMICOLON) {
 		return fmt.Sprintf("%s = %s", name, code), nil
 	} else {
 		return fmt.Sprintf("%s = %s;", name, code), nil

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/alexflint/go-arg"
 
@@ -47,17 +48,26 @@ func Run() {
 			exite("reading input", input, erre)
 		}
 		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, std)
-		if err := os.WriteFile("out.js", []byte(result), os.ModePerm); err != nil {
+		outfile := "outs.js"
+		if settings.Out != "" {
+			outfile = settings.Out
+			if !strings.HasSuffix(outfile, ".js") {
+				outfile += ".js"
+			}
+		}
+		if err := os.WriteFile(outfile, []byte(result), os.ModePerm); err != nil {
 			exit("creating output file", err)
 		}
-		if _, err := exec.Command("deno", "fmt", "out.js").Output(); err != nil {
+		if _, err := exec.Command("deno", "fmt", outfile).Output(); err != nil {
 			exit("deno fmt", err)
 		}
-		bb, err := exec.Command("deno", "run", "--allow-read", "out.js").Output()
-		if err != nil {
-			exit("deno", err)
+		if settings.Run {
+			bb, err := exec.Command("deno", "run", "--allow-read", outfile).Output()
+			if err != nil {
+				exit("deno", err)
+			}
+			print.Result(bb, settings.Debug)
 		}
-		print.Result(bb, settings.Debug)
 	} else {
 		print.Logo()
 		parg.WriteUsage(os.Stdout)

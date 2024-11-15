@@ -17,6 +17,15 @@ func (t *Transpiler) setState(s state.State) {
 	t.state = s
 }
 
+func (t *Transpiler) hasState(s state.State) bool {
+	for _, s2 := range t.oldstate {
+		if s2 == s {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *Transpiler) restoreState() {
 	old := t.oldstate[len(t.oldstate)-1]
 	t.oldstate = t.oldstate[:len(t.oldstate)-1]
