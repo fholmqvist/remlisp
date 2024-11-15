@@ -1,13 +1,19 @@
 <p align="center"><img src="logo.png"></p>
 <p align="center">A modern Lisp that compiles to JavaScript with first class interoperability.</p>
 
-**Language functionality**
-* Output works with all Javascript environments (Node, Deno, Bun, browser etc)
+## v0.1.0
+
+Of alpha quality, but usable.
+
+**Compiler features**
+* Interoperability with all Javascript environments (Node, Deno, Bun, browser etc)
 * First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
+* First class compiler error messages
 
 **Language features**
 * First class functions
 * Pattern matching
+* Destructuring
 * Threading
 * Macros
 
