@@ -1,0 +1,19 @@
+(var names {})
+
+(fn read-file [name]
+  (. Deno (readTextFileSync name)))
+
+(fn store-occurence [name]
+  (if (get names name)
+      (setf (get names name) inc)
+      (set  (get names name) 1)))
+
+(fn empty-line [x]
+  (and (string? x) (= (length x) 0)))
+
+(->> (read-file "names.txt")
+     (split-lines)
+     (reject empty-line)
+     (map store-occurence))
+
+(println names)
