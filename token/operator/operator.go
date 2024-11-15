@@ -21,6 +21,8 @@ const (
 	LTE
 	GT
 	GTE
+	AND
+	OR
 )
 
 func From(s string) (Operator, error) {
@@ -47,6 +49,10 @@ func From(s string) (Operator, error) {
 		return GT, nil
 	case ">=":
 		return GTE, nil
+	case "and":
+		return AND, nil
+	case "or":
+		return OR, nil
 	default:
 		return UNKNOWN, fmt.Errorf("unknown operator: %s", s)
 	}
@@ -78,6 +84,10 @@ func (o Operator) String() string {
 		return ">"
 	case GTE:
 		return ">="
+	case AND:
+		return "and"
+	case OR:
+		return "or"
 	default:
 		e.Panic("unknown operator", fmt.Sprintf("%d", o))
 		return ""

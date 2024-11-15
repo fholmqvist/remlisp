@@ -193,6 +193,10 @@ func (t *Transpiler) transpileBinaryOperation(e *ex.List, op operator.Operator) 
 	opstr := op.String()
 	if opstr == "=" {
 		opstr = "=="
+	} else if opstr == "and" {
+		opstr = "&&"
+	} else if opstr == "or" {
+		opstr = "||"
 	}
 	var s strings.Builder
 	s.WriteByte('(')

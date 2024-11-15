@@ -20,7 +20,8 @@ import (
 func Run() {
 	// TODO: Actual CLI.
 	print.Logo()
-	lexer, parser, transpiler := lexer.New(), parser.New(), transpiler.New()
+	lexer := lexer.New()
+	parser, transpiler := parser.New(lexer), transpiler.New()
 	exp := expander.New(lexer, parser, transpiler)
 	cmp := compiler.New(lexer, parser, transpiler)
 	stdlibInput, stdlib, erre := cmp.CompileFile("stdlib/stdlib.rem", false, exp)

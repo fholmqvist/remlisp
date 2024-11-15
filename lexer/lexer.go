@@ -40,6 +40,10 @@ func (l *Lexer) Lex(input []byte) ([]tk.Token, *e.Error) {
 	return tokens, nil
 }
 
+func (l *Lexer) LexString(input string) ([]tk.Token, *e.Error) {
+	return l.Lex([]byte(input))
+}
+
 func (l *Lexer) lex() (tk.Token, *e.Error) {
 	if !l.inRange() {
 		return nil, nil

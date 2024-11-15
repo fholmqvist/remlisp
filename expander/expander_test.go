@@ -44,6 +44,10 @@ func TestExpander(t *testing.T) {
 			input:  "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) (inc-two [1 4])",
 			output: "(macro inc-two [[x y]] `[(+ ,x 1) (+ ,y 1)]) [(+ 1 1) (+ 4 1)]",
 		},
+		{
+			input:  "(macro id [& x] x) (each [x (id 1 2 3)] (println x))",
+			output: "(macro id [& x] x) (each [x (1 2 3)] (println x))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
@@ -63,7 +67,7 @@ func getCode(t *testing.T, input string) string {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("lexing error"), erre.String(bb))
 	}
-	parser := parser.New()
+	parser := parser.New(lexer)
 	exprs, erre := parser.Parse(tokens)
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("parse error"), erre.String(bb))

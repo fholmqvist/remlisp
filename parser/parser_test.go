@@ -155,6 +155,10 @@ func TestParse(t *testing.T) {
 			input:  "(macro inc [n] (+ n 1))",
 			output: "(macro inc [n] (+ n 1))",
 		},
+		{
+			input:  "(match [1 2] [_ 2] \"_ two\" :else \"unknown\")",
+			output: "(if (and (= (length [1 2]) (length [0 2])) (= 2 (get [1 2] 1))) \"_ two\" \"unknown\")",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
@@ -343,7 +347,7 @@ func getExprs(t *testing.T, input string) ([]expr.Expr, *e.Error) {
 	if erre != nil {
 		t.Fatalf("\n\n%s:\n\n%v\n\n", h.Bold("error"), erre.String(bb))
 	}
-	parser := New()
+	parser := New(lexer)
 	exprs, erre := parser.Parse(tokens)
 	return exprs, erre
 }

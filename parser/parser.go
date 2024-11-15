@@ -1,8 +1,12 @@
 package parser
 
 import (
+	"fmt"
+	"strings"
+
 	e "github.com/fholmqvist/remlisp/err"
 	ex "github.com/fholmqvist/remlisp/expr"
+	"github.com/fholmqvist/remlisp/lexer"
 	tk "github.com/fholmqvist/remlisp/token"
 	"github.com/fholmqvist/remlisp/token/operator"
 )
@@ -11,12 +15,26 @@ type Parser struct {
 	tokens []tk.Token
 	exprs  []ex.Expr
 
+	lex   *lexer.Lexer
+	inner *Parser
+
 	i int
 }
 
-func New() *Parser {
+func New(lex *lexer.Lexer) *Parser {
+	return nnew(nil, nnew(lex, nil))
+}
+
+// A parser with a nested parser.
+//
+//	parser := New(nil, New(lexer, nil))
+//
+// Parent parser doesn't need a lexer, nested does.
+func nnew(lex *lexer.Lexer, inner *Parser) *Parser {
 	return &Parser{
 		exprs: []ex.Expr{},
+		lex:   lex,
+		inner: inner,
 		i:     0,
 	}
 }
@@ -162,6 +180,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseDotList(list)
 	case "macro":
 		return p.parseMacro(list)
+	case "match":
+		return p.parseMatch(list)
 	default:
 		return list, nil
 	}
@@ -378,4 +398,68 @@ func (p *Parser) parseMacro(list *ex.List) (ex.Expr, *e.Error) {
 		Body:   body,
 		P:      tk.Between(m.Pos().BumpLeft(), body.Pos().BumpRight()),
 	}, nil
+}
+
+func (p *Parser) parseMatch(list *ex.List) (ex.Expr, *e.Error) {
+	if len(list.V) == 0 {
+		return nil, p.errWas(list, "expected match", list)
+	}
+	_ = list.Pop()
+	cond := list.Pop()
+	added := 0
+	var s strings.Builder
+	for len(list.V) > 0 {
+		cmpe := list.Pop()
+		body := list.Pop()
+		switch cmp := cmpe.(type) {
+		case *ex.List:
+			cleancmp := cmp.String()
+			cleancmp = strings.ReplaceAll(cleancmp, " _", " 0")
+			cleancmp = strings.ReplaceAll(cleancmp, "_ ", "0 ")
+			s.WriteString(fmt.Sprintf("(if (and (= (length %s) (length %s))", cond, cleancmp))
+			if len(cmp.V) > 0 {
+				for i, expr := range cmp.V {
+					if expr.String() == "_" {
+					} else {
+						s.WriteString(fmt.Sprintf(" (= %s (get %s %d))", expr, cond, i))
+					}
+				}
+			}
+			s.WriteString(fmt.Sprintf(") %s ", body))
+		case *ex.Vec:
+			cleancmp := cmp.String()
+			cleancmp = strings.ReplaceAll(cleancmp, " _", " 0")
+			cleancmp = strings.ReplaceAll(cleancmp, "_ ", "0 ")
+			s.WriteString(fmt.Sprintf("(if (and (= (length %s) (length %s))", cond, cleancmp))
+			if len(cmp.V) > 0 {
+				for i, expr := range cmp.V {
+					if expr.String() == "_" {
+					} else {
+						s.WriteString(fmt.Sprintf(" (= %s (get %s %d))", expr, cond, i))
+					}
+				}
+			}
+			s.WriteString(fmt.Sprintf(") %s ", body))
+		case ex.Atom:
+			if cmp.V != "else" {
+				return nil, p.errWas(cmp, "only :else atoms are supported as of now", cmp)
+			}
+			s.WriteString(body.String())
+		default:
+			return nil, p.errWas(cmp, "expected comparison", cmp)
+		}
+		added++
+	}
+	for i := 1; i < added; i++ {
+		s.WriteByte(')')
+	}
+	tokens, err := p.inner.lex.LexString(s.String())
+	if err != nil {
+		return nil, err
+	}
+	nliste, err := p.inner.Parse(tokens)
+	if err != nil {
+		return nil, err
+	}
+	return nliste[0], nil
 }
