@@ -29,7 +29,7 @@
 ;; ============================================================================
 
 (fn println [& xs]
-  (do (map xs console.log)
+  (do (map console.log xs)
       (last xs)))
 
 ;; ============================================================================
@@ -58,24 +58,24 @@
   (get xs 0))
 
 (fn last [xs]
-  (get xs(- (length xs) 1)))
+  (get xs (- (length xs) 1)))
 
-(fn map [xs f]
+(fn map [f xs]
   (xs.map (fn [x] (f x))))
 
-(fn flatmap [xs f]
-  (flatten (map xs f)))
+(fn flatmap [f xs]
+  (flatten (map (fn [x] (f x)) xs)))
 
-(fn filter [xs f]
+(fn filter [f xs]
   (xs.filter (fn [x] (f x))))
 
-(fn take-while [xs f]
+(fn take-while [f xs]
   (do (var i 0)
       (while (f (xs.at i))
         (set i (+ i 1)))
       (xs.slice 0 i)))
 
-(fn drop-while [xs f]
+(fn drop-while [f xs]
   (do (var i 0)
       (while (not (f (xs.at i)))
         (set i (+ i 1)))
@@ -124,8 +124,8 @@
 (fn split-spaces [str]
   (split str " "))
 
-(fn map-string [str f]
-  (join (map (split str "") (fn [x] (f x))) ""))
+(fn map-string [f str]
+  (join (map (fn [x] (f x)) (split str "")) ""))
 
 ;; ============================================================================
 ;; NUMBERS

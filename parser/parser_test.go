@@ -163,6 +163,10 @@ func TestParse(t *testing.T) {
 			input:  "(-> [1 2 3] (get 2) (println))",
 			output: "(println (get [1 2 3] 2))",
 		},
+		{
+			input:  "(->> [1 2 3] (map (fn [x] (+ x 1))) (println))",
+			output: "(println (map (fn [x] (+ x 1)) [1 2 3]))",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {

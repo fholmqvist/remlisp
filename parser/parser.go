@@ -156,7 +156,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		if expr == nil {
 			continue
 		}
-		if expr.String() == "->" {
+		estr := expr.String()
+		if estr == "->" || estr == "->>" {
 			p.setState(state.THREADING)
 			statesSet++
 		}
@@ -199,6 +200,8 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 		return p.parseMatch(list)
 	case "->":
 		return p.parseThreadFirst(list)
+	case "->>":
+		return p.parseThreadLast(list)
 	default:
 		return list, nil
 	}
@@ -506,6 +509,28 @@ func (p *Parser) parseThreadFirst(list *ex.List) (ex.Expr, *e.Error) {
 		} else {
 			next.Append(last)
 		}
+		last = next
+	}
+	return last, nil
+}
+
+func (p *Parser) parseThreadLast(list *ex.List) (ex.Expr, *e.Error) {
+	if len(list.V) == 0 {
+		return nil, p.errWas(list, "expected thread last", list)
+	}
+	_ = list.Pop()
+	fst := list.Pop()
+	snde := list.Pop()
+	snd := snde.(*ex.List)
+	snd.Append(fst)
+	last := snd
+	for len(list.V) > 0 {
+		nexte := list.Pop()
+		next, ok := nexte.(*ex.List)
+		if !ok {
+			return nil, p.errWas(nexte, "expected list", nexte)
+		}
+		next.Append(last)
 		last = next
 	}
 	return last, nil
