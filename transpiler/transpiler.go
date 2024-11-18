@@ -17,23 +17,20 @@ type Transpiler struct {
 	exprs []ex.Expr
 	i     int
 
-	state    state.State
-	oldstate []state.State
+	state []state.State
 }
 
 func New() *Transpiler {
 	return &Transpiler{
-		i:        0,
-		state:    state.NORMAL,
-		oldstate: []state.State{},
+		i:     0,
+		state: []state.State{},
 	}
 }
 
 func (t *Transpiler) Transpile(exprs []ex.Expr) (string, *e.Error) {
 	t.exprs = exprs
 	t.i = 0
-	t.state = state.NORMAL
-	t.oldstate = []state.State{}
+	t.state = []state.State{}
 	var s strings.Builder
 	for _, e := range t.exprs {
 		code, err := t.transpile(e)
@@ -48,8 +45,7 @@ func (t *Transpiler) Transpile(exprs []ex.Expr) (string, *e.Error) {
 func (t *Transpiler) TranspileOne(expr ex.Expr) (string, *e.Error) {
 	t.exprs = []ex.Expr{expr}
 	t.i = 0
-	t.state = state.NORMAL
-	t.oldstate = []state.State{}
+	t.state = []state.State{}
 	var s strings.Builder
 	code, err := t.transpile(expr)
 	if err != nil {
@@ -146,7 +142,7 @@ func (t *Transpiler) transpileListRaw(list *ex.List, head string) (string, *e.Er
 			}
 		}
 		t.restoreState()
-		if t.state == state.NO_SEMICOLON {
+		if t.hasState(state.NO_SEMICOLON) {
 			s.WriteByte(')')
 		} else {
 			s.WriteString(");")
