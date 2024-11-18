@@ -13,6 +13,13 @@ import (
 	"github.com/fholmqvist/remlisp/transpiler"
 )
 
+// TODO:
+//
+// This is very ad hoc and error prone.
+// The confusion of doing some things here,
+// some things in the parser and some in the
+// compiler is a mess. Please redesign.
+
 // ================
 // IDEA
 // ================
