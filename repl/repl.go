@@ -1,8 +1,6 @@
 package repl
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -87,47 +85,7 @@ func (r *Repl) evalExprs(input []byte, done chan bool, print bool) {
 		return
 	}
 	if print {
-		r.printResponse(input, out)
-	}
-}
-
-func (r *Repl) printResponse(input []byte, out string) {
-	var result map[string]any
-	if err := json.Unmarshal([]byte(out), &result); err != nil {
-		fmt.Println(out)
-		return
-	}
-	if r, ok := result["result"]; ok {
-		rstr, ok := r.(string)
-		if !ok {
-			fmt.Println(r)
-			return
-		}
-		if rstr == `"use strict"` {
-			if bytes.Contains(input, []byte("(fn ")) {
-				name := bytes.Split(input, []byte("(fn "))[1]
-				name = name[:bytes.Index(name, []byte(" "))]
-				fmt.Println(h.Code(fmt.Sprintf("<fn %s>", name)))
-			} else if bytes.Contains(input, []byte("(macro ")) {
-				name := bytes.Split(input, []byte("(macro "))[1]
-				name = name[:bytes.Index(name, []byte(" "))]
-				fmt.Println(h.Code(fmt.Sprintf("<macro %s>", name)))
-			}
-			return
-		}
-		pretty, err := pp.FromJS([]byte(rstr))
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		fmt.Println(h.Code(pretty))
-	} else {
-		errstr, ok := result["error"]
-		if !ok {
-			fmt.Println(h.Code("nil"))
-			return
-		}
-		fmt.Println(h.Bold(h.Red(errstr.(string))))
+		fmt.Println(pp.ParseResponse(input, out))
 	}
 }
 

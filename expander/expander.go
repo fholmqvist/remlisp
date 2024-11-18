@@ -2,7 +2,6 @@ package expander
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
 	er "github.com/fholmqvist/remlisp/err"
@@ -10,6 +9,7 @@ import (
 	"github.com/fholmqvist/remlisp/lexer"
 	"github.com/fholmqvist/remlisp/parser"
 	"github.com/fholmqvist/remlisp/pp"
+	"github.com/fholmqvist/remlisp/runtime"
 	"github.com/fholmqvist/remlisp/transpiler"
 )
 
@@ -43,18 +43,20 @@ type Expander struct {
 	lex *lexer.Lexer
 	prs *parser.Parser
 	trn *transpiler.Transpiler
+	rt  *runtime.Runtime
 
 	quasi []struct{}
 
 	print bool
 }
 
-func New(l *lexer.Lexer, p *parser.Parser, t *transpiler.Transpiler) *Expander {
+func New(l *lexer.Lexer, p *parser.Parser, t *transpiler.Transpiler, rt *runtime.Runtime) *Expander {
 	return &Expander{
 		macros: []*ex.Macro{},
 		lex:    l,
 		prs:    p,
 		trn:    t,
+		rt:     rt,
 		quasi:  []struct{}{},
 	}
 }
@@ -90,7 +92,17 @@ func (e *Expander) expand(expr ex.Expr) (ex.Expr, *er.Error) {
 				End:   expr.P.End,
 			}
 		} else {
-			return expr.E, nil
+			return e.expand(expr.E)
+		}
+	case *ex.UnquoteSplicing:
+		if !e.inQuasiquote() {
+			return nil, &er.Error{
+				Msg:   "unquote-splicing outside of quasiquote",
+				Start: expr.P.Start,
+				End:   expr.P.End,
+			}
+		} else {
+			return e.expand(expr.E)
 		}
 	case *ex.Quasiquote:
 		return e.expandQuasiquote(expr)
@@ -196,6 +208,17 @@ func (e *Expander) expandQuasiquoteInner(expr ex.Expr) (ex.Expr, *er.Error) {
 			}
 			return expanded, nil
 		}
+	case *ex.UnquoteSplicing:
+		switch exp := expr.E.(type) {
+		case *ex.List:
+			return e.eval(exp)
+		default:
+			expanded, err := e.expand(exp)
+			if err != nil {
+				return nil, err
+			}
+			return expanded, nil
+		}
 	default:
 		return e.expand(expr)
 	}
@@ -210,13 +233,13 @@ func (e *Expander) eval(list *ex.List) (ex.Expr, *er.Error) {
 	if erre != nil {
 		return nil, erre
 	}
-	bb, err := exec.Command("deno", "eval", fmt.Sprintf("console.log(%s)", js)).Output()
-	if err != nil {
-		return list, nil // errFromStr("failed to eval: %s", err.Error())
+	out, erre := e.rt.Send(js)
+	if erre != nil {
+		return list, errFromStr("failed to eval: %v", erre)
 	}
-	lisp, err := pp.FromJS(bb)
+	lisp, err := pp.ParseResponseRaw([]byte(js), out)
 	if err != nil {
-		return nil, errFromStr("failed to parse unquote: %s", err.Error())
+		return nil, errFromStr("failed to parse response: %s", err.Error())
 	}
 	tokens, erre := e.lex.Lex([]byte(lisp))
 	if erre != nil {

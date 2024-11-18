@@ -37,7 +37,11 @@ func setup() (*arg.Parser, Settings, *compiler.Compiler, *expander.Expander, *ru
 	parg := arg.MustParse(&settings)
 	lexer := lexer.New()
 	parser, transpiler := parser.New(lexer), transpiler.New()
-	exp := expander.New(lexer, parser, transpiler)
+	rt, erre := runtime.New()
+	if erre != nil {
+		exite("creating runtime", []byte{}, erre)
+	}
+	exp := expander.New(lexer, parser, transpiler, rt)
 	cmp := compiler.New(lexer, parser, transpiler)
 	stdfns, erre := cmp.Compile(stdlib.StdFns, exp)
 	if erre != nil {
@@ -46,10 +50,6 @@ func setup() (*arg.Parser, Settings, *compiler.Compiler, *expander.Expander, *ru
 	stdmacros, erre := cmp.Compile(stdlib.StdMacros, exp)
 	if erre != nil {
 		exite("compiling stdlib macros", stdlib.StdMacros, erre)
-	}
-	rt, erre := runtime.New()
-	if erre != nil {
-		exite("creating runtime", []byte{}, erre)
 	}
 	rt.Send(stdfns)
 	rt.Send(stdmacros)

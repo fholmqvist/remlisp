@@ -7,8 +7,13 @@ import (
 	"os/exec"
 	"time"
 
+	_ "embed"
+
 	e "github.com/fholmqvist/remlisp/err"
 )
+
+//go:embed runtime.mjs
+var runtime string
 
 type Runtime struct {
 	deno   *exec.Cmd
@@ -17,7 +22,7 @@ type Runtime struct {
 }
 
 func New() (*Runtime, *e.Error) {
-	deno := exec.Command("deno", "run", "--allow-read", "runtime/runtime.mjs")
+	deno := exec.Command("deno", "eval", runtime)
 	stdin, err := deno.StdinPipe()
 	if err != nil {
 		return nil, &e.Error{Msg: err.Error()}
