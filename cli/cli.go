@@ -48,7 +48,7 @@ func Run() {
 			exite("reading input", input, erre)
 		}
 		result := fmt.Sprintf("%s\n\n// ========\n// stdlib\n// ========\n\n%s", code, std)
-		outfile := "outs.js"
+		outfile := "out.js"
 		if settings.Out != "" {
 			outfile = settings.Out
 			if !strings.HasSuffix(outfile, ".js") {

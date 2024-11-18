@@ -160,6 +160,10 @@ func TestParse(t *testing.T) {
 			output: "(if (and (= (length [1 2]) (length [0 2])) (= 2 (get [1 2] 1))) \"_ two\" \"unknown\")",
 		},
 		{
+			input:  "(match (1 2) (_ 2) \"_ two\" :else \"unknown\")",
+			output: "(if (and (= (length (1 2)) (length (0 2))) (= 2 (get (1 2) 1))) \"_ two\" \"unknown\")",
+		},
+		{
 			input:  "(-> [1 2 3] (get 2) (println))",
 			output: "(println (get [1 2 3] 2))",
 		},

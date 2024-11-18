@@ -7,7 +7,7 @@ HTML  = cover.html
 .PHONY: build run debug repl build install test cover cover-html clean
 
 run:
-	go run . input.rem
+	go run . --run input.rem
 
 debug:
 	go run . --debug input.rem
