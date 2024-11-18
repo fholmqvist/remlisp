@@ -1,0 +1,13 @@
+(fn then-json [res]
+  (. res (json)))
+
+(fn then-println [res]
+  (println res))
+
+(macro fetch->> [path & thens]
+  `(. (fetch ,path)
+      (map ,thens (fn [t] `(then ,t)))))
+
+(fetch->> "https://fakestoreapi.com/products/1"
+         (then-json)
+         (then-println))

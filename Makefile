@@ -10,7 +10,7 @@ run:
 	go run . --run input.rem
 
 debug:
-	go run . --debug input.rem
+	go run . --run --debug input.rem
 
 repl:
 	go run . --repl

@@ -34,6 +34,7 @@ func (t *Transpiler) restoreState() {
 }
 
 func fixName(s string) string {
+	s = strings.ReplaceAll(s, "->>", "_darrow_")
 	s = strings.ReplaceAll(s, "->", "_arrow_")
 	s = strings.ReplaceAll(s, "-", "_")
 	s = strings.ReplaceAll(s, "?", "P")

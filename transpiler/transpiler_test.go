@@ -112,7 +112,7 @@ func TestTranspiler(t *testing.T) {
 		},
 		{
 			input:  "(do 1 2 3)",
-			output: "(() => { 1; 2; return 3; })();",
+			output: "(() => { 1; 2; return 3; })()",
 		},
 		{
 			input:  "(var x 1)",
