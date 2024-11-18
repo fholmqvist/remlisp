@@ -7,21 +7,16 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/fholmqvist/remlisp/compiler"
 	e "github.com/fholmqvist/remlisp/err"
-	"github.com/fholmqvist/remlisp/expander"
 )
 
 type Runtime struct {
 	deno   *exec.Cmd
 	stdin  io.WriteCloser
 	stdout io.ReadCloser
-
-	cmp *compiler.Compiler
-	exp *expander.Expander
 }
 
-func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
+func New(stdlib string) (*Runtime, *e.Error) {
 	deno := exec.Command("deno", "run", "--allow-read", "runtime/runtime.mjs")
 	stdin, err := deno.StdinPipe()
 	if err != nil {
@@ -42,8 +37,6 @@ func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
 		deno:   deno,
 		stdin:  stdin,
 		stdout: stdout,
-		cmp:    cmp,
-		exp:    exp,
 	}
 	go func() {
 		scanner := bufio.NewScanner(stderr)
@@ -51,26 +44,18 @@ func New(cmp *compiler.Compiler, exp *expander.Expander) (*Runtime, *e.Error) {
 			log.Printf("stderr: %s", scanner.Text())
 		}
 	}()
-	_, stdlib, erre := r.cmp.CompileFile("stdlib/stdlib.rem", false, r.exp)
-	if erre != nil {
-		return nil, erre
-	}
-	if _, erre = r.Send(stdlib); erre != nil {
+	if _, erre := r.Send(stdlib); erre != nil {
 		return nil, erre
 	}
 	return r, nil
 }
 
-func (r *Runtime) Eval(input []byte) (string, *e.Error) {
-	cmp, err := r.cmp.Compile(input, r.exp)
-	if err != nil {
-		return "", err
-	}
-	return r.Send(cmp)
+func (r *Runtime) Send(js string) (string, *e.Error) {
+	return r.SendByte([]byte(js))
 }
 
-func (r *Runtime) Send(s string) (string, *e.Error) {
-	if _, err := r.stdin.Write([]byte(s)); err != nil {
+func (r *Runtime) SendByte(js []byte) (string, *e.Error) {
+	if _, err := r.stdin.Write(js); err != nil {
 		return "", &e.Error{Msg: err.Error()}
 	}
 	// TODO: Synchronize?

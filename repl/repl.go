@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/fholmqvist/remlisp/compiler"
+	"github.com/fholmqvist/remlisp/expander"
 	h "github.com/fholmqvist/remlisp/highlight"
 	"github.com/fholmqvist/remlisp/pp"
 	"github.com/fholmqvist/remlisp/runtime"
@@ -18,21 +20,25 @@ import (
 const MAX_HISTORY = 256
 
 type Repl struct {
+	cmp  *compiler.Compiler
+	exp  *expander.Expander
 	rt   *runtime.Runtime
 	line *line
 
 	signals chan os.Signal
 }
 
-func Run(rt *runtime.Runtime, stdlib []byte) {
+func Run(cmp *compiler.Compiler, exp *expander.Expander, rt *runtime.Runtime) {
 	r := Repl{
+		cmp:  cmp,
+		exp:  exp,
 		rt:   rt,
 		line: newLine(),
 	}
-	r.Run(stdlib)
+	r.Run()
 }
 
-func (r *Repl) Run(stdlib []byte) {
+func (r *Repl) Run() {
 	fd, orig, raw := initTermios()
 	setTermios(fd, raw)
 	defer setTermios(fd, orig)
@@ -47,7 +53,6 @@ func (r *Repl) Run(stdlib []byte) {
 		done <- true
 		signaled = true
 	}()
-	r.evalExprs(stdlib, done, false)
 	go func() {
 		for {
 			input := r.input()
@@ -67,7 +72,12 @@ func (r *Repl) Run(stdlib []byte) {
 }
 
 func (r *Repl) evalExprs(input []byte, done chan bool, print bool) {
-	out, err := r.rt.Eval(input)
+	js, erre := r.cmp.Compile(input, r.exp)
+	if erre != nil {
+		fmt.Println(erre.String(input) + "\n")
+		return
+	}
+	out, err := r.rt.Send(js)
 	if err != nil {
 		fmt.Println(err.String(input) + "\n")
 		return

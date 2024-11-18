@@ -28,20 +28,20 @@ func Run() {
 	parser, transpiler := parser.New(lexer), transpiler.New()
 	exp := expander.New(lexer, parser, transpiler)
 	cmp := compiler.New(lexer, parser, transpiler)
+	std, erre := cmp.Compile(stdlib.Stdlib, exp)
+	if erre != nil {
+		exite("compiling stdlib", stdlib.Stdlib, erre)
+	}
 	if settings.REPL {
 		print.Logo()
-		rt, erre := runtime.New(cmp, exp)
+		rt, erre := runtime.New(std)
 		if erre != nil {
 			exite("creating runtime", []byte{}, erre)
 		}
-		repl.Run(rt, stdlib.Stdlib)
+		repl.Run(cmp, exp, rt)
 	} else if settings.Path != "" {
 		if settings.Debug {
 			print.Logo()
-		}
-		std, erre := cmp.Compile(stdlib.Stdlib, exp)
-		if erre != nil {
-			exite("compiling stdlib", stdlib.Stdlib, erre)
 		}
 		input, code, erre := cmp.CompileFile(settings.Path, settings.Debug, exp)
 		if erre != nil {
