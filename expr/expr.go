@@ -449,3 +449,21 @@ func (u Unquote) String() string {
 func (u Unquote) Pos() tk.Position {
 	return u.P
 }
+
+type UnquoteSplicing struct {
+	E Expr
+	P tk.Position
+}
+
+func (UnquoteSplicing) Expr() {}
+
+func (u UnquoteSplicing) String() string {
+	var st strings.Builder
+	st.WriteString(",@")
+	st.WriteString(u.E.String())
+	return st.String()
+}
+
+func (u UnquoteSplicing) Pos() tk.Position {
+	return u.P
+}

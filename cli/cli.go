@@ -41,11 +41,11 @@ func setup() (*arg.Parser, Settings, *compiler.Compiler, *expander.Expander, *ru
 	cmp := compiler.New(lexer, parser, transpiler)
 	stdfns, erre := cmp.Compile(stdlib.StdFns, exp)
 	if erre != nil {
-		exite("compiling stdlib", stdlib.StdFns, erre)
+		exite("compiling stdlib functions", stdlib.StdFns, erre)
 	}
 	stdmacros, erre := cmp.Compile(stdlib.StdMacros, exp)
 	if erre != nil {
-		exite("compiling stdlib", stdlib.StdMacros, erre)
+		exite("compiling stdlib macros", stdlib.StdMacros, erre)
 	}
 	rt, erre := runtime.New()
 	if erre != nil {

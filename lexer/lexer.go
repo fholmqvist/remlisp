@@ -106,6 +106,9 @@ func (l *Lexer) lex() (tk.Token, *e.Error) {
 	case isQuasiquote(l.ch):
 		l.step()
 		return tk.Quasiquote{P: l.Pos()}, nil
+	case isAtSign(l.ch):
+		l.step()
+		return tk.AtSign{P: l.Pos()}, nil
 	default:
 		pos := l.Pos()
 		return nil, e.FromPosition(pos, fmt.Sprintf("%s %s: %q",

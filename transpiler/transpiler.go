@@ -87,7 +87,13 @@ func (t *Transpiler) transpile(expr ex.Expr) (string, *e.Error) {
 	case *ex.Macro:
 		return t.transpileMacro(expr)
 	case *ex.Quote:
-		return expr.E.String(), nil
+		return t.transpileQuote(expr)
+	case *ex.Quasiquote:
+		return t.transpileQuasiquote(expr)
+	case *ex.Unquote:
+		return t.transpileUnquote(expr)
+	case *ex.UnquoteSplicing:
+		return t.transpileUnquoteSplicing(expr)
 	case ex.Op:
 		return "", e.FromPosition(expr.Pos(), fmt.Sprintf("misplaced operator: %q", expr))
 	default:
@@ -412,4 +418,46 @@ func (t *Transpiler) transpileVariableArg(e *ex.VariableArg) (string, *e.Error) 
 func (t *Transpiler) transpileMacro(m *ex.Macro) (string, *e.Error) {
 	lines := strings.Split(m.String(), "\n")
 	return fmt.Sprintf("// %s\n\n", strings.Join(lines, "\n// ")), nil
+}
+
+func (t *Transpiler) transpileQuote(expr *ex.Quote) (string, *e.Error) {
+	e, err := t.transpile(expr.E)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("eval(%q)", e), nil
+}
+
+func (t *Transpiler) transpileQuasiquote(expr *ex.Quasiquote) (string, *e.Error) {
+	t.setState(state.IN_QUASI)
+	defer t.restoreState()
+	e, err := t.transpile(expr.E)
+	if err != nil {
+		return "", err
+	}
+	return e, nil
+}
+
+func (t *Transpiler) transpileUnquote(expr *ex.Unquote) (string, *e.Error) {
+	if t.hasState(state.IN_QUASI) {
+		e, err := t.transpile(expr.E)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("eval(%q)", e), nil
+	} else {
+		return "", e.FromPosition(expr.Pos(), "misplaced unquote")
+	}
+}
+
+func (t *Transpiler) transpileUnquoteSplicing(expr *ex.UnquoteSplicing) (string, *e.Error) {
+	if t.hasState(state.IN_QUASI) {
+		e, err := t.transpile(expr.E)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("...eval(%q)", e), nil
+	} else {
+		return "", e.FromPosition(expr.Pos(), "misplaced unquote splicing")
+	}
 }

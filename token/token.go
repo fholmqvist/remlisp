@@ -280,3 +280,17 @@ func (c Quasiquote) String() string {
 func (c Quasiquote) Pos() Position {
 	return c.P
 }
+
+type AtSign struct {
+	P Position
+}
+
+func (AtSign) Token() {}
+
+func (c AtSign) String() string {
+	return "@"
+}
+
+func (c AtSign) Pos() Position {
+	return c.P
+}

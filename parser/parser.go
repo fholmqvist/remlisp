@@ -51,7 +51,7 @@ func (p *Parser) Parse(tokens []tk.Token) ([]ex.Expr, *e.Error) {
 	p.i = 0
 	p.tokens = tokens
 	for p.inRange() {
-		expr, err := p.parseExpr()
+		expr, err := p.parse()
 		if err != nil {
 			return nil, err
 		}
@@ -63,11 +63,15 @@ func (p *Parser) Parse(tokens []tk.Token) ([]ex.Expr, *e.Error) {
 	return p.exprs, nil
 }
 
-func (p *Parser) parseExpr() (ex.Expr, *e.Error) {
+func (p *Parser) parse() (ex.Expr, *e.Error) {
 	next, err := p.next()
 	if err != nil {
 		return nil, err
 	}
+	return p.parseExpr(next)
+}
+
+func (p *Parser) parseExpr(next tk.Token) (ex.Expr, *e.Error) {
 	switch t := next.(type) {
 	case tk.Nil:
 		return p.parseNil(t)
@@ -149,7 +153,7 @@ func (p *Parser) parseList() (ex.Expr, *e.Error) {
 	list := &ex.List{}
 	var statesSet int
 	for p.inRange() && !p.is(tk.RightParen{}) {
-		expr, err := p.parseExpr()
+		expr, err := p.parse()
 		if err != nil {
 			return nil, err
 		}
@@ -296,7 +300,7 @@ func (p *Parser) parseGet(list *ex.List) (ex.Expr, *e.Error) {
 func (p *Parser) parseVec() (ex.Expr, *e.Error) {
 	vec := &ex.Vec{}
 	for p.inRange() && !p.is(tk.RightBracket{}) {
-		expr, err := p.parseExpr()
+		expr, err := p.parse()
 		if err != nil {
 			return nil, err
 		}
@@ -324,11 +328,11 @@ func (p *Parser) parseDotList(list *ex.List) (ex.Expr, *e.Error) {
 func (p *Parser) parseMap() (ex.Expr, *e.Error) {
 	mp := &ex.Map{}
 	for p.inRange() && !p.is(tk.RightBrace{}) {
-		k, err := p.parseExpr()
+		k, err := p.parse()
 		if err != nil {
 			return nil, err
 		}
-		v, err := p.parseExpr()
+		v, err := p.parse()
 		if err != nil {
 			return nil, err
 		}
@@ -341,7 +345,7 @@ func (p *Parser) parseMap() (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseVariableArg(pos tk.Position) (ex.Expr, *e.Error) {
-	arg, err := p.parseExpr()
+	arg, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +367,7 @@ func (p *Parser) parseDot(dot tk.Dot) (ex.Identifier, *e.Error) {
 }
 
 func (p *Parser) parseQuote(q tk.Quote) (ex.Expr, *e.Error) {
-	expr, err := p.parseExpr()
+	expr, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +378,7 @@ func (p *Parser) parseQuote(q tk.Quote) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseQuasiquote(q tk.Quasiquote) (ex.Expr, *e.Error) {
-	expr, err := p.parseExpr()
+	expr, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
@@ -385,11 +389,31 @@ func (p *Parser) parseQuasiquote(q tk.Quasiquote) (ex.Expr, *e.Error) {
 }
 
 func (p *Parser) parseUnquote(c tk.Comma) (ex.Expr, *e.Error) {
-	expr, err := p.parseExpr()
+	t, err := p.next()
 	if err != nil {
 		return nil, err
 	}
-	return &ex.Unquote{
+	switch next := t.(type) {
+	case tk.AtSign:
+		return p.parseUnquoteSplicing(next)
+	default:
+		expr, err := p.parseExpr(next)
+		if err != nil {
+			return nil, err
+		}
+		return &ex.Unquote{
+			E: expr,
+			P: tk.Between(c.Pos(), expr.Pos()),
+		}, nil
+	}
+}
+
+func (p *Parser) parseUnquoteSplicing(c tk.AtSign) (ex.Expr, *e.Error) {
+	expr, err := p.parse()
+	if err != nil {
+		return nil, err
+	}
+	return &ex.UnquoteSplicing{
 		E: expr,
 		P: tk.Between(c.Pos(), expr.Pos()),
 	}, nil

@@ -148,6 +148,10 @@ func isQuasiquote(b byte) bool {
 	return b == '`'
 }
 
+func isAtSign(b byte) bool {
+	return b == '@'
+}
+
 func isDelimiter(b byte) bool {
 	switch b {
 	case ' ', ',', ':', '\n', '\t', '[', ']', '(', ')', '{', '}':

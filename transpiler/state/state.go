@@ -9,6 +9,7 @@ const (
 	NORMAL
 	NO_SEMICOLON
 	IN_STATEMENT
+	IN_QUASI
 )
 
 func (s State) String() string {
@@ -21,6 +22,8 @@ func (s State) String() string {
 		return "NO_SEMICOLON"
 	case IN_STATEMENT:
 		return "IN_STATEMENT"
+	case IN_QUASI:
+		return "IN_QUASI"
 	default:
 		panic(fmt.Errorf("unknown state: %d", s))
 	}
