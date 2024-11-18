@@ -1,9 +1,7 @@
 <p align="center"><img src="logo.png"></p>
 <p align="center">A modern Lisp that compiles to JavaScript with first class interoperability.</p>
 
-## v0.1.0
-
-Of alpha quality, but usable.
+<h3 align="center">version 0.1.0 ALPHA</h3>
 
 **Compiler features**
 
@@ -86,7 +84,7 @@ Of alpha quality, but usable.
       (split-lines)
       (get 2))
 
-"A modern Lisp that compiles to JavaScript with first class interop."
+"A modern Lisp that compiles to JavaScript with first class interoperability."
 ```
 
 ## Installation
