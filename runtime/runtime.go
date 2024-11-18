@@ -16,7 +16,7 @@ type Runtime struct {
 	stdout io.ReadCloser
 }
 
-func New(stdlib string) (*Runtime, *e.Error) {
+func New() (*Runtime, *e.Error) {
 	deno := exec.Command("deno", "run", "--allow-read", "runtime/runtime.mjs")
 	stdin, err := deno.StdinPipe()
 	if err != nil {
@@ -44,9 +44,6 @@ func New(stdlib string) (*Runtime, *e.Error) {
 			log.Printf("stderr: %s", scanner.Text())
 		}
 	}()
-	if _, erre := r.Send(stdlib); erre != nil {
-		return nil, erre
-	}
 	return r, nil
 }
 

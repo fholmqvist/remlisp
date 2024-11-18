@@ -22,8 +22,6 @@
 ;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;;; SOFTWARE.
 
-;;; TODO: This is a work in progress, and should be split by responsibility.
-
 ;; ============================================================================
 ;; IO
 ;; ============================================================================
@@ -146,9 +144,6 @@
 (fn odd? [n]
   (= (% n 2) 1))
 
-(macro inc [x]
-  `(set ,x (+ ,x 1)))
-
 ;; ============================================================================
 ;; BOOLEANS
 ;; ============================================================================
@@ -166,23 +161,6 @@
 ;; ITERATION
 ;; ============================================================================
 
-(macro for [[index start end next] body]
-  `(do (var ,index ,start)
-       (while (!= ,index ,end)
-         (do ,body
-             (,next ,index)))))
-
-;; TODO: Fix gensym during macro expansion.
-(macro each [[x xs] body]
-  `(do (var _each ,xs)
-       (for [i 0 (length _each) inc]
-          (do (var ,x (get _each i))
-              ,body))))
-
 ;; ============================================================================
 ;; VARIOUS
 ;; ============================================================================
-
-(macro setf [get f]
-  `(do (var fff ,f)
-       (set ,get (fff ,get))))

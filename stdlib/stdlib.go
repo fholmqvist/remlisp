@@ -4,5 +4,8 @@ import (
 	_ "embed"
 )
 
-//go:embed stdlib.rem
-var Stdlib []byte
+//go:embed stdfns.rem
+var StdFns []byte
+
+//go:embed stdmacros.rem
+var StdMacros []byte
