@@ -3,7 +3,7 @@
 
 <h3 align="center">version 0.1.0 ALPHA</h3>
 
-**Compiler features**
+**Compiler goals**
 
 - Interoperability with all Javascript environments (Node, Deno, Bun, browser etc)
 - First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
