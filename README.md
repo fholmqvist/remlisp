@@ -6,7 +6,7 @@
 **Compiler goals**
 
 - Interoperability with all Javascript environments (Node, Deno, Bun, browser etc)
-- First class REPL (currently Deno) with realtime syntax highlighting and readline capabilities
+- First class REPL (currently against Deno runtime) with realtime syntax highlighting and readline capabilities
 - First class compiler error messages
 
 **Language features**
