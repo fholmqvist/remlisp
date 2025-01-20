@@ -6,12 +6,6 @@ HTML  = cover.html
 
 .PHONY: build run debug repl build install test cover cover-html clean
 
-run:
-	go run . --run input.rem
-
-debug:
-	go run . --run --debug input.rem
-
 repl:
 	go run . --repl
 
@@ -34,3 +28,9 @@ cover:
 cover-html: clean cover
 	go tool cover -html=$(COVER) -o $(HTML)
 	xdg-open $(HTML)
+
+run:
+	go run . --run input.rem
+
+debug:
+	go run . --run --debug input.rem

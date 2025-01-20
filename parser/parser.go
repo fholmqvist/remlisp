@@ -457,13 +457,12 @@ func (p *Parser) parseMatch(list *ex.List) (ex.Expr, *e.Error) {
 		body := list.Pop()
 		switch cmp := cmpe.(type) {
 		case *ex.List:
-			cleancmp := cmp.String()
-			cleancmp = strings.ReplaceAll(cleancmp, " _", " 0")
-			cleancmp = strings.ReplaceAll(cleancmp, "_ ", "0 ")
+			cleancmp := strings.ReplaceAll(cmp.String(), "_", "0")
 			s.WriteString(fmt.Sprintf("(if (and (= (length %s) (length %s))", cond, cleancmp))
 			if len(cmp.V) > 0 {
 				for i, expr := range cmp.V {
 					if expr.String() == "_" {
+						// Ignore.
 					} else {
 						s.WriteString(fmt.Sprintf(" (= %s (get %s %d))", expr, cond, i))
 					}
@@ -471,13 +470,12 @@ func (p *Parser) parseMatch(list *ex.List) (ex.Expr, *e.Error) {
 			}
 			s.WriteString(fmt.Sprintf(") %s ", body))
 		case *ex.Vec:
-			cleancmp := cmp.String()
-			cleancmp = strings.ReplaceAll(cleancmp, " _", " 0")
-			cleancmp = strings.ReplaceAll(cleancmp, "_ ", "0 ")
+			cleancmp := strings.ReplaceAll(cmp.String(), "_", "0")
 			s.WriteString(fmt.Sprintf("(if (and (= (length %s) (length %s))", cond, cleancmp))
 			if len(cmp.V) > 0 {
 				for i, expr := range cmp.V {
 					if expr.String() == "_" {
+						// Ignore.
 					} else {
 						s.WriteString(fmt.Sprintf(" (= %s (get %s %d))", expr, cond, i))
 					}

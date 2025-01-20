@@ -336,7 +336,7 @@ func TestError(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			_, err := getExprs(t, tt.input)
 			if err == nil {
-				t.Fatalf(h.Bold(h.Red("\n\nexpected error, got nil\n")))
+				t.Fatal(h.Bold(h.Red("\n\nexpected error, got nil\n")))
 			}
 			if !errEq(err, tt.output) {
 				t.Fatalf("\n\nexpected\n\n%v\n\ngot\n\n%v\n\n",

@@ -1,0 +1,12 @@
+(fn explain-arr [arr]
+  (match arr
+    []        "empty"
+    [_]       "one number"
+    [_ _ _ 3] "four numbers ending in 3"
+    [1 2 3 4] "one two three four"
+    :else     "something else"))
+
+(println (explain-arr []))
+(println (explain-arr [1]))
+(println (explain-arr [1 2 3 3]))
+(println (explain-arr [1 2 3 4]))
