@@ -444,6 +444,7 @@ func (p *Parser) parseMacro(list *ex.List) (ex.Expr, *e.Error) {
 	}, nil
 }
 
+// Rewrites the match statement into nested ifs and reparses it.
 func (p *Parser) parseMatch(list *ex.List) (ex.Expr, *e.Error) {
 	if len(list.V) == 0 {
 		return nil, p.errWas(list, "expected match", list)

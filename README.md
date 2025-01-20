@@ -103,3 +103,20 @@ $ make install
 $ make build
 $ mv rem $(SOME_PATH)
 ```
+
+## Usage
+
+```bash
+$ rem -h
+Usage: rem [--out OUT] [--repl] [--run] [--debug] [PATH]
+
+Positional arguments:
+  PATH                   path to the input file
+
+Options:
+  --out OUT, -o OUT      path of the output file
+  --repl                 start REPL
+  --run                  run the output (deno)
+  --debug                print debug info
+  --help, -h             display this help and exit
+```
