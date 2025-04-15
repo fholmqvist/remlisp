@@ -3,6 +3,8 @@ package repl
 import (
 	"fmt"
 
+	"slices"
+
 	h "github.com/fholmqvist/remlisp/highlight"
 )
 
@@ -105,7 +107,24 @@ func (l *line) end() {
 
 func (l *line) backspace() {
 	if l.cursor > 0 {
-		l.line = append(l.line[:l.cursor-1], l.line[l.cursor:]...)
+		curr := l.line[l.cursor-1]
+		hasNext := l.cursor < len(l.line)
+		if hasNext {
+			next := l.line[l.cursor]
+			if curr == '(' && next == ')' {
+				l.line = slices.Delete(l.line, l.cursor-1, l.cursor+1)
+			} else if curr == '[' && next == ']' {
+				l.line = slices.Delete(l.line, l.cursor-1, l.cursor+1)
+			} else if curr == '{' && next == '}' {
+				l.line = slices.Delete(l.line, l.cursor-1, l.cursor+1)
+			} else if curr == '"' && next == '"' {
+				l.line = slices.Delete(l.line, l.cursor-1, l.cursor+1)
+			} else {
+				l.line = slices.Delete(l.line, l.cursor-1, l.cursor)
+			}
+		} else {
+			l.line = slices.Delete(l.line, l.cursor-1, l.cursor)
+		}
 		l.cursor--
 	}
 }
@@ -114,7 +133,7 @@ func (l *line) delete() {
 	if l.cursor == len(l.line) {
 		return
 	}
-	l.line = append(l.line[:l.cursor], l.line[l.cursor+1:]...)
+	l.line = slices.Delete(l.line, l.cursor, l.cursor+1)
 }
 
 func (l *line) backspaceWord() {
